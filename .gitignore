@@ -1,0 +1,12 @@
+#compiled js files
+*/dist
+
+#node modules
+*/node_modules
+
+#lock files
+*-lock*
+
+#JetBrains IDEs generated files
+*/.idea
+*.sln
