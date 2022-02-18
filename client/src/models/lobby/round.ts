@@ -1,4 +1,4 @@
-import {Card} from "../cards/card";
+import {Card, getRandomCard} from "../cards/card";
 import {Player} from "../player/player";
 
 export class Round {
@@ -34,5 +34,16 @@ export class Round {
 
     public set bets(b){
         this._bets = b;
+    }
+
+    public getNewCard() {
+        let newCard = getRandomCard();
+
+        while (this._table.includes(newCard)) {
+            newCard = getRandomCard();
+        }
+
+        this._table.push(newCard);
+        return newCard;
     }
 }
