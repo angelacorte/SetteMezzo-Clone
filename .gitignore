@@ -10,3 +10,6 @@
 #JetBrains IDEs generated files
 */.idea
 *.sln
+
+#Jest coverage reports
+*/coverage
