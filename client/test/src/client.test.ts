@@ -1,5 +1,5 @@
 import SocketMock from 'socket.io-mock'
-import { Client } from '../../src/Client'
+import { Client, SocketIoClient } from '../../src/Client'
 
 describe('My Client', ()=>{
 
@@ -8,7 +8,7 @@ describe('My Client', ()=>{
     beforeAll(()=>{
         //initialize a mock socket and client
         socket = new SocketMock();
-        client = new Client(socket);
+        client = new SocketIoClient(socket);
     })
 
     it('registers event listeners', ()=>{
