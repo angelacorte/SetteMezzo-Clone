@@ -1,9 +1,11 @@
-const PORT = 3000
+import { Server, Socket } from 'socket.io'
 
-const io = require('socket.io')(PORT)
+const PORT = 3000;
 
-console.log("Server running on port: "+PORT)
+const io = new Server(PORT);
 
-io.on('connection', (socket:any)=>{
-    console.log("Client with id "+socket.id+" connected")
+console.log("Server running on port: "+PORT);
+
+io.on('connection', (socket: Socket)=>{
+    console.log("Client with id "+socket.id+" connected");
 })
