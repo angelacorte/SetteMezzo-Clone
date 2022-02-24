@@ -13,3 +13,5 @@
 
 #Jest coverage reports
 */coverage
+#configurations
+/server/src/config/.env
