@@ -1,6 +1,10 @@
 import {cardValue, getRandomValue} from "./cardValue";
 import {cardSuit, getRandomSuit} from "./cardSuit";
 
+/**
+ * Represents the value and the suit of a card
+ */
+
 export class Card {
     private _value: cardValue;
     private _suit: cardSuit;
@@ -27,6 +31,9 @@ export class Card {
     }
 }
 
+/**
+ * @return new card with random value and random suit
+ */
 export function getRandomCard(){
     return new Card(getRandomValue() ,getRandomSuit());
 }
