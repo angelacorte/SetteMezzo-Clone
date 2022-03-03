@@ -1,11 +1,17 @@
 import {Schema, Types, model} from "mongoose";
 
+/**
+ * Represent main informations about a lobby, its ID, the owner of the lobby and the partecipants
+ */
 interface Lobby {
     id: string;
     participants?: Types.Array<string>;
     owner: string;
 }
 
+/**
+ * Defines the types and the necessity of its fields
+ */
 const lobbySchema = new Schema<Lobby>({
     id: {type: String, required: true},
     participants: [{type: String}],
