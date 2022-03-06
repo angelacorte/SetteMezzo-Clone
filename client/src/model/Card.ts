@@ -6,9 +6,9 @@ export enum CardValue {
     FIVE,
     SIX,
     SEVEN,
-    JACK,
-    KNIGHT,
-    KING
+    JACK = 0.5,
+    KNIGHT = 0.5,
+    KING = 0.5
 }
 
 export enum CardSuit {
