@@ -20,11 +20,12 @@ export interface LobbyUtils{
      * @param maxParticipants the max number of users in the lobby
      * @param maxRounds the max number of rounds
      * @param sbleuri the value used for the bets
+     * @param open if the lobby is public or not
      * @return code to check if the creation gone wrong or not
      */
-    lobbySettings(lobbyID: string, maxParticipants: number, maxRounds: number, sbleuri: number): number;
+    lobbySettings(lobbyID: string, maxParticipants: number, maxRounds: number, sbleuri: number, open: boolean): number;
 
-    //NOTE: those methods are just for one participant because
+    //NOTE: those "add" and "remove" methods are just for one participant because
     //server won't wait for other users to join/leave at the same time
     /**
      * Add one participant to a lobby
@@ -50,8 +51,24 @@ export interface LobbyUtils{
     changeState(state: LobbyState): Lobby;
 
     /**
+     * Change the owner of the lobby if the old owner quits
+     * @param ownerID
+     * @return lobby infos
+     */
+    changeOwner(ownerID: string): Lobby;
+
+    /**
      * Delete specific lobby when the last user quits
      * @param lobbyID
      */
     deleteLobby(lobbyID: string): void;
+
+    /**
+     *Get all the lobbies that follow its params
+     * @param open (optional) lobby public or not
+     * @param status (optional)
+     * @param orderByParticipants (optional) to give priority to lobbies that are almost full
+     * @return array containing all lobbies and their infos
+     */
+    getLobbies(open?:boolean, status?:LobbyState, orderByParticipants?: boolean): Lobby[];
 }
