@@ -3,8 +3,9 @@ import {Schema, Types, model} from "mongoose";
 /**
  * Represent main informations about a lobby, its ID, the owner of the lobby and the partecipants
  */
-interface Lobby {
+export interface Lobby {
     id: string;
+    //status: ,
     participants?: Types.Array<string>;
     owner: string;
 }
@@ -18,4 +19,4 @@ const lobbySchema = new Schema<Lobby>({
     owner: {type: String, required: true} //technical debt lol - maybe in the future we may use a user schema if we want to remember users (match history)
 });
 
-export const LobbyModel = model<Lobby>('Lobby', lobbySchema);
+//export const LobbyModel = model<Lobby>('Lobby', lobbySchema);
