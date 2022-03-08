@@ -48,4 +48,10 @@ export interface LobbyUtils{
      * @return lobby infos
      */
     changeState(state: LobbyState): Lobby;
+
+    /**
+     * Delete specific lobby when the last user quits
+     * @param lobbyID
+     */
+    deleteLobby(lobbyID: string): void;
 }
