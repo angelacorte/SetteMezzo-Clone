@@ -13,7 +13,6 @@ const client = new MongoClient(dbURL, { useNewUrlParser: true, useUnifiedTopolog
 export function connectDB(){
     client.connect((err:any) => {
         console.log('Mongo has connected succesfully');
-
     });
 }
 
