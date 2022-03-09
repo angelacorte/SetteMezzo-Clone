@@ -1,9 +1,4 @@
-import {Lobby} from "../models/lobby.model";
-import { createServer } from "http";
-import { Server, Socket } from "socket.io";
-import { DefaultEventsMap } from "socket.io/dist/typed-events";
-import {PORT} from "../app";
-
+import {Lobby, LobbyState} from "../models/lobby/Lobby";
 
 /**
  * ServerUtils can send messages to Client, create/join Lobbies.
@@ -23,6 +18,28 @@ export interface ServerUtils {
      * @param lobbyID (optional)
      */
     leaveLobby(userID?: string, lobbyID?: string): void;
+
+    /**
+     * Generate new random lobby
+     * @param ownerID the player who wants to create the lobby
+     *
+     */
+    createLobby(ownerID: string): void; //TODO @return the lobby created
+
+    /**
+     *Get all the lobbies that follow its params
+     * @param open (optional) lobby public or not
+     * @param status (optional)
+     * @param orderByParticipants (optional) to give priority to lobbies that are almost full
+     * @return array containing all lobbies and their infos
+     */
+    getLobbies(open?:boolean, status?:LobbyState, orderByParticipants?: boolean): Lobby[];
+
+    /**
+     * Delete specific lobby when the last user quits
+     * @param lobbyID
+     */
+    deleteLobby(lobbyID: string): void;
 }
 
 export class SocketIoServer implements ServerUtils {
@@ -39,6 +56,18 @@ export class SocketIoServer implements ServerUtils {
     }
 
     leaveLobby(userID?: string, lobbyID?: string): void {
+
+    }
+
+    getLobbies(open?: boolean, status?: LobbyState, orderByParticipants?: boolean): Lobby[] {
+        return [];
+    }
+
+    createLobby(ownerID: string): void {
+        //return new Lobby()
+    }
+
+    deleteLobby(lobbyID: string): void {
     }
 
 }
