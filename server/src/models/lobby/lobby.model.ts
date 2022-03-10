@@ -1,11 +1,11 @@
-import {Schema, Types, model} from "mongoose";
+import {Schema, Types, model, Document} from "mongoose";
 import {LobbyState} from "./Lobby";
 
 /**
  * Represent main informations about a lobby, its ID, the owner of the lobby and the partecipants
  */
-interface Lobby {
-    id: string;
+interface Lobby extends Document{
+    lobbyID: string;
     status: LobbyState,
     participants?: string[];
     owner: string;
@@ -16,10 +16,10 @@ interface Lobby {
  * Defines the types and the necessity of its fields
  */
 const lobbySchema = new Schema<Lobby>({
-    id: {type: String, required: true},
+    lobbyID: {type: String, required: true, unique: true},
     participants: [{type: String}],
     owner: {type: String, required: true}, //technical debt lol - maybe in the future we may use a user schema if we want to remember users (match history)
     open: {type: Boolean, default: false}
 });
 
-const LobbyModel = model<Lobby>('Lobby', lobbySchema);
+export const LobbyModel = model<Lobby>('lobby', lobbySchema);
