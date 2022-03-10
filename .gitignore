@@ -16,3 +16,4 @@
 
 #environment configurations
 *.env
+/server/src/config/.env.mongo

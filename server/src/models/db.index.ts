@@ -1,23 +1,37 @@
-//import {LobbyModel} from "./lobby.model";
-const { MongoClient, ServerApiVersion } = require('mongodb');
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
-export const __DB_NAME__ = 'setteMezzo';
-const dotenv = require('dotenv');
-dotenv.config();
+//import dotenv = require('dotenv')
+//const mongoenv = require('custom-env').env('mongo');
+//dotenv.config(mongoenv);
+import {LobbyModel} from "./lobby/lobby.model";
+//const Player = require('player/player.model');
 
-const dbURL = "mongodb+srv://"+process.env["MONGO_USER"]+":"+ process.env["MONGO_PASS"]+"@"+process.env["MONGO_CLUSTER"]+".kgpdq.mongodb.net/"+process.env["MONGO_DBNAME"]+"?retryWrites=true&w=majority";
+//const dbURL = "mongodb+srv://"+process.env.MONGO_USER+":"+ process.env.MONGO_PASS+"@"+process.env.MONGO_CLUSTER+".kgpdq.mongodb.net/"+process.env.MONGO_DBNAME+"?retryWrites=true&w=majority";
+const dbURL = "mongodb+srv://angelacorte:p8juSFok9A5mupA1@cluster0.kgpdq.mongodb.net/setteMezzo?retryWrites=true&w=majority";
 
-const client = new MongoClient(dbURL, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+export const db = {
+    "url": dbURL,
+    lobby: LobbyModel,
+    //player: Player
+}
 
-export function connectDB(){
-    client.connect((err:any) => {
-        console.log('Mongo has connected succesfully');
+export async function connectDB() {
+    await mongoose.connect(db.url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }).then(()=>{
+        console.log("connected to the database SUCCESSFULLY");
+    }).catch((err:any)=>{
+        console.log("connection to the database FAILED: ", err);
+        process.exit();
     });
 }
 
-export function disconnectDB() {
-    client.close((err:any) => {
+export async function disconnectDB() {
+    await mongoose.close((err:any) => {
         console.log('Mongo has disconnected succesfully');
+        if(err){
+            console.log(err + " on disconnecting from mongo");
+        }
     });
 }
