@@ -1,4 +1,5 @@
 import {Lobby, LobbyState} from "../models/lobby/Lobby";
+import {Socket} from "socket.io";
 
 /**
  * ServerUtils can send messages to Client, create/join Lobbies.
@@ -7,33 +8,34 @@ export interface ServerUtils {
 
     /**
      * User joins a lobby
-     * @param userID
+     * @param socket
      * @param lobbyID (optional if the lobby is random)
      */
-    joinLobby(userID: string, lobbyID?: string): void;
+    joinLobby(socket: Socket, lobbyID?: string): void;
 
     /**
      * User quits a lobby
-     * @param userID (optional)
+     * @param socket
      * @param lobbyID (optional)
      */
-    leaveLobby(userID?: string, lobbyID?: string): void;
+    leaveLobby(socket: Socket, lobbyID?: string): void;
 
     /**
      * Generate new random lobby
-     * @param ownerID the player who wants to create the lobby
+     * @param socket the player who wants to create the lobby
      *
      */
-    createLobby(ownerID: string): void; //TODO @return the lobby created
+    createLobby(socket: Socket): void; //TODO @return the lobby created
 
     /**
      *Get all the lobbies that follow its params
+     * @param socket
      * @param open (optional) lobby public or not
      * @param status (optional)
      * @param orderByParticipants (optional) to give priority to lobbies that are almost full
      * @return array containing all lobbies and their infos
      */
-    getLobbies(open?:boolean, status?:LobbyState, orderByParticipants?: boolean): Lobby[];
+    getLobbies(socket: Socket, open?:boolean, status?:LobbyState, orderByParticipants?: boolean): Lobby[];
 
     /**
      * Delete specific lobby when the last user quits
@@ -50,20 +52,22 @@ export class SocketIoServer implements ServerUtils {
         this.io = io;
     }
 
-    joinLobby(userID: string, lobbyID?: string): void {
-        this.io.join(lobbyID);
-
+    joinLobby(socket: Socket, lobbyID: string): void {
+        socket.join(lobbyID);
+        socket.data.lobby = lobbyID; //TODO to add also the username used
+        this.io.to(lobbyID).emit("joined-lobby");
     }
 
-    leaveLobby(userID?: string, lobbyID?: string): void {
-
+    leaveLobby(socket: Socket, lobbyID: string): void {
+        socket.leave(lobbyID);
     }
 
-    getLobbies(open?: boolean, status?: LobbyState, orderByParticipants?: boolean): Lobby[] {
+    getLobbies(socket: Socket, open?: boolean, status?: LobbyState, orderByParticipants?: boolean): Lobby[] {
+        //socket.rooms
         return [];
     }
 
-    createLobby(ownerID: string): void {
+    createLobby(socket: Socket): void {
         //return new Lobby()
     }
 

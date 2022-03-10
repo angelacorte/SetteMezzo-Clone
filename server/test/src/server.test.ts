@@ -11,25 +11,17 @@ describe('My Server', ()=>{
 
 })
 
-/*describe('database related tests', ()=>{
+describe('database related tests', ()=>{
 
-    let connection:any;
-    let db;
-
-    /!*beforeAll( async () =>{
-        connection = await MongoClient.connect(dbIndex.url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        db = await connection.db(dbIndex.__DB_NAME__)
+    beforeAll( async () =>{
+        await dbIndex.connectDB();
     });
 
     afterAll( async () => {
-        await connection.close();
-    });*!/
+        await dbIndex.disconnectDB();
+    });
 
-    test("connection to db", done =>{
-        it.todo('Make db requests');
-    })
-})*/
+    it.todo('Make db requests');
+
+})
 

@@ -22,12 +22,39 @@ httpServer.listen(PORT, function () {
     console.log("Listening on port: " +PORT);
 });
 
-//const server = new SocketIoServer(io);
-
-io.on('connection', (socket: Socket)=>{
-    console.log("Client with id: "+socket.id+" connected.");
-});
+const server = new SocketIoServer(io);
 
 routes(app);
 
 connectDB();
+
+io.on('connect', (socket: Socket)=>{
+    console.log("Client with id: "+socket.id+" connected.");
+
+    io.to(socket.id).emit("set username");
+    socket.on("set username", (username) => {
+        socket.data.username = username;
+    });
+
+    io.to(socket.id).emit("chose action"); //create new lobby, join existing or random lobby
+    socket.on("chose action", (choice) => {
+        //check on choice
+        //create new lobby
+        //join random lobby
+        //join existing lobby (check on id)
+        socket.join("lobby");
+    });
+
+    socket.on("joined-lobby", () => {
+        //lobby has to change its infos
+    });
+
+    io.on("start game", () => {
+
+    });
+
+    socket.on("disconnect", () => {
+        console.log("Client with id: "+socket.id+" disconnected.");
+    });
+});
+
