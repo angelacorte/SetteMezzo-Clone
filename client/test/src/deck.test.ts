@@ -1,6 +1,7 @@
 import { Deck, DeckImpl } from '../../src/model/deck/Deck'
 import { Card } from '../../src/model/card/Card';
 import { SetteMezzoDeckFactory } from '../../src/model/deck/DeckFactory';
+import { BriscolaSuits } from '../../src/model/card/SetteMezzoCard';
 
 class MockCard implements Card {
     private value: number;
@@ -59,5 +60,16 @@ describe('Settemezzo Deck', ()=>{
 
     test('has 40 cards', ()=>{
         expect(deck.getList().length).toEqual(40);
+    })
+
+    test('there is King of swords', ()=>{
+        console.log(deck.getList())
+        let king = deck.getList().filter(value =>
+            value.getName() == "KING" && value.getSuit() == BriscolaSuits.SWORDS)
+            .pop();
+        if(king){
+            expect(king.getCardValue()).toEqual(0.5)
+            expect(king.getSuit()).toEqual(BriscolaSuits.SWORDS)
+        }
     })
 })
