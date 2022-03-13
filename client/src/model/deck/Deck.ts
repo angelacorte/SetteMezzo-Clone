@@ -1,4 +1,3 @@
-import ListPrompt from "inquirer/lib/prompts/list";
 import { Card } from "../card/Card";
 
 export interface Deck {

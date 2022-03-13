@@ -1,7 +1,6 @@
-import { assert } from 'console';
 import { Deck, DeckImpl } from '../../src/model/deck/Deck'
-import { Card } from '../model/card/Card';
-import { SetteMezzoCard } from '../model/card/SetteMezzoCard';
+import { Card } from '../../src/model/card/Card';
+import { SetteMezzoDeckFactory } from '../../src/model/deck/DeckFactory';
 
 class MockCard implements Card {
     private value: number;
@@ -48,5 +47,17 @@ describe('My deck', ()=>{
 
     test('draw on empty deck throws error', ()=>{
         expect(()=>deck.draw()).toThrowError('Empty deck')
+    })
+})
+
+describe('Settemezzo Deck', ()=>{
+    let deck: Deck;
+
+    beforeAll(()=>{
+        deck = new SetteMezzoDeckFactory().createDeck();
+    })
+
+    test('has 40 cards', ()=>{
+        expect(deck.getList().length).toEqual(40);
     })
 })

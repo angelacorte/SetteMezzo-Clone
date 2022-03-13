@@ -17,7 +17,7 @@ export enum SetteMezzoValue{
 }
 
 /**
- * Common card values for Briscola cards.
+ * Common card suits for Briscola cards.
  */
 export enum BriscolaSuits{
     SWORDS = "Swords",
@@ -32,10 +32,23 @@ export enum BriscolaSuits{
  */
 export class SetteMezzoCard implements Card {
     private name: string;
-    private value: SetteMezzoValue;
-    private suit: BriscolaSuits;
+    private value: number;
+    private suit: string;
 
-    constructor(name: string, value: SetteMezzoValue, suit: BriscolaSuits){
+    public static readonly valueMap: Map<string, number> = new Map([
+        ["ACE", 1],
+        ["TWO", 2],
+        ["THREE", 3],
+        ["FOUR", 4],
+        ["FIVE", 5],
+        ["SIX", 6],
+        ["SEVEN", 7],
+        ["JACK", 0.5],
+        ["KNIGHT", 0.5],
+        ["KING", 0.5],
+    ])
+
+    constructor(name: string, value: number, suit: string){
         this.name = name;
         this.value = value;
         this.suit = suit;
