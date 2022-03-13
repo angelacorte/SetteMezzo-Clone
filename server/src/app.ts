@@ -22,7 +22,7 @@ httpServer.listen(PORT, function () {
     console.log("Listening on port: " +PORT);
 });
 
-const server = new SocketIoServer(io);
+//const server = new SocketIoServer(io);
 
 routes(app);
 
@@ -37,19 +37,12 @@ io.on('connect', (socket: Socket)=>{
     });
 
     io.to(socket.id).emit("chose action"); //create new lobby, join existing or random lobby
-    socket.on("chose action", (choice) => {
-        //check on choice
-        //create new lobby
-        //join random lobby
-        //join existing lobby (check on id)
-        socket.join("lobby");
+
+    socket.on("join-lobby", (lobby) => {
+        socket.join(lobby);
     });
 
-    socket.on("joined-lobby", () => {
-        //lobby has to change its infos
-    });
-
-    io.on("start game", () => {
+    socket.on("start-game", () => {
 
     });
 
