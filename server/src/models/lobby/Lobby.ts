@@ -1,9 +1,8 @@
+import {LobbyUtils} from "../../utils/LobbyUtils";
+
 /**
  * Enum with the states for a lobby
  */
-import {LobbyUtils} from "../../utils/LobbyUtils";
-import {inflate} from "zlib";
-
 export enum LobbyState {
     CREATED,
     EMPTY,
@@ -18,24 +17,22 @@ export enum LobbyState {
 export class Lobby implements LobbyUtils{
     private _id: string;
     private _owner: string;
-    private _players: string[];
     private _deck: any; //Cards[]
     private _state: LobbyState;
-    private _open: boolean;
+    private _isOpen: boolean;
     private _maxParticipants: number;
     private _maxRounds: number;
-    private _sbleuri: number;
+    private _initialSbleuri: number;
 
-    constructor(id:string, owner: string, players: string[], deck: any, state: LobbyState, open: boolean, maxP: number, maxR: number, sbleuri: number) {
+    constructor(id:string, owner: string, deck: any, state: LobbyState, isOpen: boolean, maxP: number, maxR: number, initialSbleuri: number) {
         this._id = id;
         this._owner = owner;
-        this._players = players;
         this._deck = deck;
         this._state = state;
-        this._open = open;
+        this._isOpen = isOpen;
         this._maxParticipants = maxP;
         this._maxRounds = maxR;
-        this._sbleuri = sbleuri;
+        this._initialSbleuri = initialSbleuri;
     }
 
     getId(): string {
@@ -48,14 +45,6 @@ export class Lobby implements LobbyUtils{
 
     setOwner(value: string) {
         this._owner = value;
-    }
-
-    getPlayers(): string[] {
-        return this._players;
-    }
-
-    setPlayers(value: string[]) {
-        this._players = value;
     }
 
     getDeck(): any {
@@ -75,11 +64,11 @@ export class Lobby implements LobbyUtils{
     }
 
     isOpen(): boolean {
-        return this._open;
+        return this._isOpen;
     }
 
     setOpen(value: boolean) {
-        this._open = value;
+        this._isOpen = value;
     }
 
     getMaxParticipants(): number {
@@ -98,34 +87,22 @@ export class Lobby implements LobbyUtils{
         this._maxRounds = value;
     }
 
-    getSbleuri(): number {
-        return this._sbleuri;
+    getInitialSbleuri(): number {
+        return this._initialSbleuri;
     }
 
-    setSbleuri(value: number) {
-        this._sbleuri = value;
+    setInitialSbleuri(value: number) {
+        this._initialSbleuri = value;
     }
 
     public getLobby(){
         return this;
     }
 
-    addParticipant(user: string): void {
-        this._players.push(user);
-    }
-
-    lobbySettings(maxParticipants: number, maxRounds: number, sbleuri: number, open: boolean): void {
+    lobbySettings(maxParticipants: number, maxRounds: number, initialSbleuri: number, isOpen: boolean): void {
         this._maxParticipants = maxParticipants;
         this._maxRounds = maxRounds;
-        this._sbleuri = sbleuri;
-        this._open = open;
-    }
-
-    removeParticipant(user: string): void {
-        this._players.forEach((p, index) => {
-            if(p == user){
-                this._players.splice(index,1);
-            }
-        })
+        this._initialSbleuri = initialSbleuri;
+        this._isOpen = isOpen;
     }
 }

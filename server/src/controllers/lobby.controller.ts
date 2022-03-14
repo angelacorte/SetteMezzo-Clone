@@ -3,6 +3,9 @@ import {Request, Response} from "express";
 
 let Lobby = db.lobby;
 
+/**
+ * Add a lobby to the database
+ */
 exports.addLobby = function (req: Request,res: Response) {
     let newLobby = new Lobby(req.body);
     newLobby.save( function (err: any, lobby: any) {
@@ -13,6 +16,9 @@ exports.addLobby = function (req: Request,res: Response) {
     })
 }
 
+/**
+ * Gets all the lobbies in the database
+ */ //TODO maybe get all the active lobbies
 exports.getLobbies = function (req:Request, res:Response){
     Lobby.find({}, {"_id":0}).then( result => {
         if(!result){
