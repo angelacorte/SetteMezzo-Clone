@@ -62,14 +62,17 @@ describe('Settemezzo Deck', ()=>{
         expect(deck.getList().length).toEqual(40);
     })
 
+    test('remove card', ()=>{
+        let card = deck.draw()
+        let deck2 = new SetteMezzoDeckFactory().createDeck();
+        deck2.removeCard(card);
+        expect(deck2.getList().length).toEqual(39);
+    })
+
     test('there is King of swords', ()=>{
-        console.log(deck.getList())
-        let king = deck.getList().filter(value =>
-            value.getName() == "KING" && value.getSuit() == BriscolaSuits.SWORDS)
-            .pop();
-        if(king){
-            expect(king.getCardValue()).toEqual(0.5)
-            expect(king.getSuit()).toEqual(BriscolaSuits.SWORDS)
-        }
+        let king = deck.getCard('KING of SWORDS');
+        console.log(king)
+        expect(king.getCardValue()).toEqual(0.5)
+        expect(king.getSuit()).toEqual(BriscolaSuits.SWORDS)
     })
 })

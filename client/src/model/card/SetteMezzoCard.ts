@@ -20,10 +20,10 @@ export enum SetteMezzoValue{
  * Common card suits for Briscola cards.
  */
 export enum BriscolaSuits{
-    SWORDS = "Swords",
-    CUPS = "Cups",
-    COINS = "Coins",
-    CLUBS = "Clubs"
+    SWORDS = "SWORDS",
+    CUPS = "CUPS",
+    COINS = "COINS",
+    CLUBS = "CLUBS"
 }
 
 /**

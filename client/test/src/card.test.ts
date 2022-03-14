@@ -22,6 +22,6 @@ describe('My Card', ()=>{
     })
 
     test('getSuit', ()=>{
-        expect(cardOne.getSuit()).toEqual("Coins");
+        expect(cardOne.getSuit()).toEqual(BriscolaSuits.COINS);
     })
 })

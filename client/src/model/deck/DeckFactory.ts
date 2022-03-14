@@ -12,7 +12,7 @@ export class SetteMezzoDeckFactory implements DeckFactory {
             for(let v in SetteMezzoValue){
                 let value = SetteMezzoCard.valueMap.get(v);
                 if(value){
-                    deck.addCard(new SetteMezzoCard(v, value, suit))
+                    deck.addCard(new SetteMezzoCard(`${v} of ${suit}`, value, suit))
                 }
             }
         }

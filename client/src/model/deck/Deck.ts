@@ -5,6 +5,8 @@ export interface Deck {
     getList(): Card[];
     draw(): Card;
     addCard(card: Card): void;
+    removeCard(card: Card): void;
+    getCard(name: string): Card;
     isEmpty(): boolean;
 }
 
@@ -14,7 +16,7 @@ export class DeckImpl implements Deck {
     constructor(){
         this.cards = new Array<Card>();
     }
-
+    
     shuffle() {
         this.cards.sort((a, b) => 0.5 - Math.random());
     }
@@ -34,6 +36,18 @@ export class DeckImpl implements Deck {
 
     addCard(card: Card): void {
         this.cards.push(card);
+    }
+
+    removeCard(card: Card) {
+        this.cards = this.cards.filter(c => c.getName() != card.getName());
+    }
+
+    getCard(name: string): Card {
+        let found = this.getList().filter(value =>
+            value.getName() == name)
+            .pop();
+        if(!found) throw new Error('Card not found')
+        return found
     }
 
     isEmpty() {
