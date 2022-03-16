@@ -1,14 +1,6 @@
 import { Client } from './Client'
 
 /**
- * Represents the state of the game, cards in play, turn order, players playing and their money.
- *
- */
-export interface GameState {
-    /** @todo GameState model and architecture*/
-}
-
-/**
  * Manages the game state.
  */
 export interface GameManager {
