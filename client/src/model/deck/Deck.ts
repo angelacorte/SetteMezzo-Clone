@@ -1,12 +1,46 @@
 import { Card } from "../card/Card";
 
+/**
+ * A generic deck of cards.
+ */
 export interface Deck {
+    /**
+     * Randomizes the cards in the deck.
+     */
     shuffle(): void;
+
+    /**
+     * @returns an immutable copy of the cards in the deck.
+     */
     getList(): Card[];
+
+    /**
+     * @returns pops the top card of the deck.
+     */
     draw(): Card;
+
+    /**
+     * 
+     * @param card The card to add.
+     */
     addCard(card: Card): void;
+
+    /**
+     * 
+     * @param card The card to remove.
+     */
     removeCard(card: Card): void;
+
+    /**
+     * 
+     * @param name The unique card name.
+     * @returns The card with given name.
+     */
     getCard(name: string): Card;
+
+    /**
+     * Checks if the deck is empty.
+     */
     isEmpty(): boolean;
 }
 
