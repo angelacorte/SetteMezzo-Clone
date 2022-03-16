@@ -34,7 +34,7 @@ export class GameStateImpl implements GameState {
     private table: Map<string, Card[]>;
     private bets: Map<string, number>;
 
-    constructor(deck: Deck, players: Player[], bets: Map<string, number>, table: Map<string, Card[]){
+    constructor(deck: Deck, players: Player[], bets: Map<string, number>, table: Map<string, Card[]>){
         this.deck = deck;
         this.players = players;
         this.bets = bets;
