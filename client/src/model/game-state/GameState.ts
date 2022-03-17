@@ -13,9 +13,9 @@ import { Player } from "../Player";
     getDeck(): Deck;
 
     /**
-     * @returns A list of all players in play.
+     * @returns A map from player ids to players.
      */
-    getPlayers(): Player[];
+    getPlayers(): Map<string, Player>
 
     /**
      * @returns The cards each player got in every turn.
@@ -30,11 +30,11 @@ import { Player } from "../Player";
 
 export class GameStateImpl implements GameState {
     private deck: Deck;
-    private players: Player[];
+    private players: Map<string, Player>;
     private table: Map<string, Card[]>;
     private bets: Map<string, number>;
 
-    constructor(deck: Deck, players: Player[], bets: Map<string, number>, table: Map<string, Card[]>){
+    constructor(deck: Deck, players: Map<string, Player>, bets: Map<string, number>, table: Map<string, Card[]>){
         this.deck = deck;
         this.players = players;
         this.bets = bets;
@@ -45,7 +45,7 @@ export class GameStateImpl implements GameState {
         return this.deck;
     }
 
-    getPlayers(): Player[] {
+    getPlayers(): Map<string, Player> {
         return this.players;
     }
 

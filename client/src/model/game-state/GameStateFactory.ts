@@ -1,6 +1,6 @@
 import { SetteMezzoDeckFactory } from "../deck/DeckFactory";
 import { GameState, GameStateImpl } from "./GameState";
-import { PlayerImpl } from "../Player";
+import { Player, PlayerImpl } from "../Player";
 import { Card } from "../card/Card";
 
 export interface GameStateFactory {
@@ -10,7 +10,7 @@ export interface GameStateFactory {
 export class SetteMezzoGameStateFactory implements GameStateFactory {
     createGameState(): GameState {
         let deck = new SetteMezzoDeckFactory().createDeck();
-        let players = new Array<PlayerImpl>();
+        let players = new Map<string, Player>();
         let bets = new Map<string, number>();
         let table = new Map<string, Card[]>()
         return new GameStateImpl(deck, players, bets, table);
