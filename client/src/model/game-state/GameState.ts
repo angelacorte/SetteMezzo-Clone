@@ -1,6 +1,6 @@
-import { Card } from "./card/Card";
-import { Deck } from "./deck/Deck";
-import { Player } from "./Player";
+import { Card } from "../card/Card";
+import { Deck } from "../deck/Deck";
+import { Player } from "../Player";
 
 /**
  * Represents the state of the game, cards in play, turn order, players playing and their money.
