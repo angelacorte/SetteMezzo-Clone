@@ -24,8 +24,15 @@ describe('My Game Manager', ()=>{
     })
 
     test('register bet', ()=>{
-        gameManager.registerBet(player.getId(), 10);
+        let playerId = player.getId();
+        gameManager.registerBet(playerId, 10);
         expect(player.getMoney()).toEqual(PLAYER_MONEY - 10);
-        expect(gameManager.getBets().size).toEqual(1);
+        expect(gameManager.getPlayerBets(playerId).length).toEqual(1);
+    })
+
+    test('get player cards', ()=>{
+        let playerId = player.getId();
+        gameManager.drawCard(playerId);
+        expect(gameManager.getPlayerCards(playerId).length).toEqual(1);
     })
 })
