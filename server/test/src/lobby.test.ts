@@ -6,16 +6,11 @@ describe("My lobby", () => {
     let lobby: Lobby;
 
     beforeAll(() => {
-        lobby = new Lobby(getRandomLobby(), "Angela", ["Angela", "Leonardo"], ["King", "Knight"], LobbyState.CREATED, false, 2, 3, 0);
+        lobby = new Lobby(getRandomLobby(), "Angela", ["King", "Knight"], LobbyState.CREATED, false, 2, 3, 0);
     });
 
     test("getLobbyOwner", () => {
         expect(lobby.getOwner()).toEqual("Angela");
-    });
-
-    test("addParticipant", () => {
-        lobby.addParticipant("Luca");
-        expect(lobby.getPlayers()).toEqual(["Angela", "Leonardo", "Luca"]);
     });
 
     test("changeState", () => {
@@ -25,11 +20,6 @@ describe("My lobby", () => {
 
     test("getLobby", () => {
         expect(lobby.getLobby()).toEqual(lobby);
-    });
-
-    test("removeParticipant", () => {
-        lobby.removeParticipant("Luca");
-        expect(lobby.getPlayers()).toEqual(["Angela", "Leonardo"]);
     });
 
     test("lobbySettings", () => {
@@ -43,6 +33,4 @@ describe("My lobby", () => {
         lobby.setOwner("Leonardo");
         expect(lobby.getOwner()).toEqual("Leonardo");
     });
-
-
 })
