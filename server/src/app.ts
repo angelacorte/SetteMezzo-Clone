@@ -5,7 +5,6 @@ import {connectDB} from "./models/db.index";
 const express = require('express');
 const routes = require('./routes/routes');
 const utils = require("./utils/utils");
-import {SocketIoServer} from "./utils/ServerUtils";
 
 const app = express();
 export const PORT = 3000;
@@ -29,17 +28,40 @@ routes(app);
 connectDB();
 
 io.on('connect', (socket: Socket)=>{
-    console.log("Client with id: "+socket.id+" connected.");
 
-    io.to(socket.id).emit("set username");
-    socket.on("set username", (username) => {
+    io.to(socket.id).emit("ask-username");
+
+    socket.on("set-username", (username) => {
         socket.data.username = username;
+        console.log(`User ${username} connected`);
+        io.to(socket.id).emit("hi-socket", `Hi ${username}, let's play!`);
+        io.to(socket.id).emit("choose-action", "Please press:\n1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby"); //create new lobby, join existing or random lobby
     });
 
-    io.to(socket.id).emit("chose action"); //create new lobby, join existing or random lobby
+    socket.on("action-chosen", (message) => {
+        console.log("User choose " + message);
+        console.log(socket.rooms);  //TODO check why it doesn't remembers rooms
+        if(message == 1){
+            //todo
+        }else if (message == 2){
+            io.to(socket.id).emit("insert-lobby", "Insert a valid lobby code > ", socket.rooms);
+        }else if (message == 3){
+            let room = utils.getRandomLobby();
+            socket.rooms.add(room)
+            console.log(socket.rooms);
+            socket.join(room);
+            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`);
+        }else{
+            io.to(socket.id).emit("retry-action");
+        }
+    });
 
     socket.on("join-lobby", (lobby) => {
-        socket.join(lobby);
+        if(socket.rooms.has(lobby)){
+            socket.join(lobby);
+        }else{
+            io.to(socket.id).emit("retry-lobby");
+        }
     });
 
     socket.on("start-game", () => {
