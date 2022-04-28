@@ -1,4 +1,8 @@
 import {LobbyUtils} from "../../utils/LobbyUtils";
+import {SetteMezzoDeckFactory} from "../../../../client/src/model/deck/DeckFactory";
+
+
+let lobbies: Lobby[] = [];
 
 /**
  * Enum with the states for a lobby
@@ -104,5 +108,26 @@ export class Lobby implements LobbyUtils{
         this._maxRounds = maxRounds;
         this._initialSbleuri = initialSbleuri;
         this._isOpen = isOpen;
+    } //maybe useless
+
+    addLobby(lobby: string, id: string, settings: any): void {
+        lobbies.push(new Lobby(lobby, id, new SetteMezzoDeckFactory(), LobbyState.CREATED, settings.isOpen, settings.maxParticipants, settings.maxRounds, settings.initialSbleuri));
+    }
+
+    getLobbies(): Lobby[] {
+        return lobbies;
+    }
+
+    getPublicLobbies(): Lobby[] {
+        return lobbies.filter(l => l.isOpen());
+    }
+
+    removeLobby(lobby: string): void {
+        lobbies.some((l, i) => {
+            if(l._id === lobby){
+                lobbies.splice(i, 1);
+            }
+        })
     }
 }
+
