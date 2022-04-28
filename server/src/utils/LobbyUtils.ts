@@ -4,7 +4,7 @@ import {Lobby} from "../models/lobby/Lobby";
  * Lobby instantiate its params based on Client's preferences
  * keep trace of lobbies and their status
  */
-export interface LobbyUtils{
+export interface LobbyUtils {
 
     /**
      * Set the lobby params chosen by the owner of the lobby
@@ -13,7 +13,7 @@ export interface LobbyUtils{
      * @param sbleuri the value used for the bets
      * @param open if the lobby is public or not
      */
-    lobbySettings(maxParticipants: number, maxRounds: number, sbleuri: number, open: boolean): void;
+    //lobbySettings(maxParticipants: number, maxRounds: number, sbleuri: number, open: boolean): void;
 
     /**
      * add a lobby to @lobbies array
@@ -40,6 +40,4 @@ export interface LobbyUtils{
      * Get all public lobbies
      */
     getPublicLobbies(): Lobby[];
-
-
 }
