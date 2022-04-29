@@ -3,6 +3,7 @@ import {SocketIoClient} from "./Client";
 import {GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import {read} from "fs";
+import {PlayerImpl} from "./model/Player";
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
 const readline = require('readline').createInterface({
@@ -14,6 +15,19 @@ const manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameS
 let numberRegex = /\d/;
 let boolRegex = /[y|n]/;
 let startRegex = /s/;
+
+let settings: {
+    maxParticipants: number,
+    maxRounds: number,
+    initialSbleuri: any,
+    isOpen: boolean
+} = {
+    maxParticipants: 10,
+    maxRounds: 3,
+    initialSbleuri: false,
+    isOpen: true
+};
+
 
 client.registerEvent("draw-card", () => {
     let card = manager.drawCard(socket.id);
@@ -58,7 +72,8 @@ socket.on('connect', ()=>{
         });
     });
 
-    socket.on("new-join", (message) => {
+    socket.on("new-join", (message, playerId) => {
+        manager.registerPlayer(new PlayerImpl(playerId, settings.initialSbleuri)); //TODO it passes false, because it's initialized as false, initialSbleuri changes its value later
         console.log(message);
     });
 
@@ -79,38 +94,36 @@ socket.on('connect', ()=>{
 
     socket.on("set-participants", () => {
         readline.question("Set the max number of participants [default 10] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)){
-                socket.emit("max-participants", input);
-                readline.pause();
-            }else socket.emit("max-participants", 10);
+            if(input.length != 0 && input.match(numberRegex)) settings.maxParticipants = Number(input);
+            socket.emit("max-participants");
+            readline.pause();
         })
     });
 
     socket.on("set-rounds", () => {
         readline.question("Set the max number of rounds [default 3] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)){
-                socket.emit("max-rounds", input);
-                readline.pause();
-            }else socket.emit("max-rounds", 3);
+            if(input.length != 0 && input.match(numberRegex)) settings.maxRounds = Number(input);
+            socket.emit("max-rounds");
+            readline.pause();
         });
     });
 
     socket.on("set-sbleuri", () => {
         readline.question("Set the initial number of sbleuri\n[if don't want to use them, just press enter] > ", (input: string) => {
-            if(input.length != 0 && input.match(numberRegex)){
-                socket.emit("init-sbleuri", input);
-                readline.pause();
-            }else socket.emit("init-sbleuri", false);
+            if(input.length != 0 && input.match(numberRegex)) settings.initialSbleuri = input;
+            socket.emit("init-sbleuri");
+            readline.pause();
         });
     });
 
     socket.on("set-public", () => {
         readline.question("Is the lobby public? y(es) / n(o) [default yes] > ", (input:string) => {
             if(input.length != 0 && input.match(boolRegex)){
-                if(input == 'y') socket.emit("is-public", true);
-                else if(input == 'n') socket.emit("is-public", false);
-                readline.pause();
-            }else socket.emit("is-public", true);
+                if(input == 'y') settings.isOpen = true;
+                else if(input == 'n') settings.isOpen = false;
+            }else settings.isOpen = true;
+            socket.emit("is-public", settings);
+            readline.pause();
         });
     });
 
@@ -124,6 +137,7 @@ socket.on('connect', ()=>{
     });
 
     socket.on("starting", (message) => {
+        console.log("manager ", manager.getPlayers()); //fictitious print just to see if everything's fine --> todo will delete in future
         console.log(message);
     })
 });

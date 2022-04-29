@@ -5,9 +5,9 @@ import {connectDB} from "./models/db.index";
 const express = require('express');
 const routes = require('./routes/routes');
 const utils = require("./utils/utils");
-import {LobbyUtils} from "./utils/LobbyUtils";
-import {LobbyUtilsImpl} from "./utils/LobbyUtilsImpl";
-import {Lobby} from "./models/lobby/Lobby";
+import {GameManager} from "../../client/src/GameManager";
+import {LobbyUtilsImpl} from "./utils/LobbyUtils";
+import {Lobby, LobbyState} from "./models/lobby/Lobby";
 
 const app = express();
 export const PORT = 3000;
@@ -63,31 +63,28 @@ io.on('connect', (socket: Socket)=>{
         }else if (message == 2){ //join a specific lobby
             io.to(socket.id).emit("insert-lobby", "Insert a valid lobby code > ", activeLobbies);
         }else if (message == 3){ //join a random lobby
-            // let rand = new Random(lobbies.length)
             let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]  //todo check on maxparticipants and status
             socket.join(room);
             io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`);
         }else io.to(socket.id).emit("retry-action");
     });
 
-    socket.on("max-participants", (nPartc:number) => {
-        settings.maxParticipants = nPartc;
+    socket.on("max-participants", () => {
         io.to(socket.data.room).emit("set-rounds");
     });
 
-    socket.on("max-rounds", (nRounds: number) => {
-        settings.maxRounds = nRounds;
+    socket.on("max-rounds", () => {
         io.to(socket.data.room).emit("set-sbleuri");
     });
 
-    socket.on("init-sbleuri", (nSbleuri: any) => {
-        settings.initialSbleuri = nSbleuri;
+    socket.on("init-sbleuri", () => {
         io.to(socket.data.room).emit("set-public");
     });
 
-    socket.on("is-public", (isOpen: boolean) => {
-        settings.isOpen = isOpen;
-        lobbyUtils.addLobby(socket.data.room, socket.data.id, settings);
+    socket.on("is-public", (sets: any) => {
+        settings = sets;
+        lobbyUtils.addLobby(socket.data.room, socket.id, settings);
+        console.log(lobbyUtils.getLobbies()); //TODO check that's everything fine
         io.to(socket.data.room).emit("start-game");
     });
 
@@ -95,11 +92,12 @@ io.on('connect', (socket: Socket)=>{
         let activeLobbies = lobbyUtils.getLobbies();
         if(activeLobbies.some((l:Lobby) => l.getId() === lobby)){
             socket.join(lobby);
-            io.to(lobby).emit("new-join", `User ${socket.data.username} joined the lobby ${lobby}`);
+            io.to(lobby).emit("new-join", `User ${socket.data.username} joined the lobby ${lobby}`, socket.id); //TODO check why socket.id is undefined
         }else io.to(socket.id).emit("retry-lobby");
     });
 
     socket.on("start", () => {
+        lobbyUtils.changeState(socket.data.room, LobbyState.STARTED);
         io.to(socket.data.room).emit("starting", "Get ready!");
     });
 
