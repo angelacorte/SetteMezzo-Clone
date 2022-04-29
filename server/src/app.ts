@@ -20,7 +20,7 @@ const io = new Server(httpServer);
 let settings: {
     maxParticipants: number,
     maxRounds: number,
-    initialSbleuri: number,
+    initialSbleuri: any,
     isOpen: boolean
 } = {
     maxParticipants: 10,
@@ -39,7 +39,7 @@ httpServer.listen(PORT, function () {
 
 routes(app);
 
-connectDB();
+// connectDB();
 
 io.on('connect', (socket: Socket)=>{
 
@@ -47,7 +47,6 @@ io.on('connect', (socket: Socket)=>{
 
     socket.on("set-username", (username) => {
         socket.data.username = username;
-        console.log(`User ${username} connected`);
         io.to(socket.id).emit("hi-socket", `Hi ${username}, let's play!`);
         io.to(socket.id).emit("choose-action", "Please press:\n1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby"); //create new lobby, join existing or random lobby
     });
@@ -68,31 +67,25 @@ io.on('connect', (socket: Socket)=>{
             let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]  //todo check on maxparticipants and status
             socket.join(room);
             io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`);
-        }else{
-            io.to(socket.id).emit("retry-action");
-        }
+        }else io.to(socket.id).emit("retry-action");
     });
 
     socket.on("max-participants", (nPartc:number) => {
-        console.log("nPart ", nPartc);
         settings.maxParticipants = nPartc;
         io.to(socket.data.room).emit("set-rounds");
     });
 
     socket.on("max-rounds", (nRounds: number) => {
-        console.log("nRounds ", nRounds);
         settings.maxRounds = nRounds;
         io.to(socket.data.room).emit("set-sbleuri");
     });
 
-    socket.on("init-sbleuri", (nSbleuri: number) => {
-        console.log("nSbleuri ", nSbleuri);
+    socket.on("init-sbleuri", (nSbleuri: any) => {
         settings.initialSbleuri = nSbleuri;
         io.to(socket.data.room).emit("set-public");
     });
 
     socket.on("is-public", (isOpen: boolean) => {
-        console.log("isOpen ", isOpen);
         settings.isOpen = isOpen;
         lobbyUtils.addLobby(socket.data.room, socket.data.id, settings);
         io.to(socket.data.room).emit("start-game");
@@ -103,9 +96,7 @@ io.on('connect', (socket: Socket)=>{
         if(activeLobbies.some((l:Lobby) => l.getId() === lobby)){
             socket.join(lobby);
             io.to(lobby).emit("new-join", `User ${socket.data.username} joined the lobby ${lobby}`);
-        }else{
-            io.to(socket.id).emit("retry-lobby");
-        }
+        }else io.to(socket.id).emit("retry-lobby");
     });
 
     socket.on("start", () => {
@@ -114,6 +105,7 @@ io.on('connect', (socket: Socket)=>{
 
     socket.on("disconnect", () => {
         console.log("Client with id: "+socket.id+" disconnected.");
+        //todo check on socket's room, if empty delete it
     });
 
 });

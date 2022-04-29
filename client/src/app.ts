@@ -2,6 +2,7 @@ import io from "socket.io-client"
 import {SocketIoClient} from "./Client";
 import {GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
+import {read} from "fs";
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
 const readline = require('readline').createInterface({
@@ -14,8 +15,6 @@ let numberRegex = /\d/;
 let boolRegex = /[y|n]/;
 let startRegex = /s/;
 
-// client.registerEvent("connect ", )
-
 client.registerEvent("draw-card", () => {
     let card = manager.drawCard(socket.id);
     client.fireEvent("card-drawn", card, socket.id);
@@ -26,7 +25,7 @@ socket.on('connect', ()=>{
 
     socket.on("ask-username", ()=>{
         const userRegex: RegExp = /[\D+\d?]+/g; //todo
-        readline.question("Hello gamer! Insert your username, please > ", (input: string) => {
+        readline.question("Hello gamer! Insert your username, please > ", (input:string) => {
             if(input.match(userRegex)){
                 socket.emit("set-username", input);
                 readline.pause();
@@ -80,46 +79,38 @@ socket.on('connect', ()=>{
 
     socket.on("set-participants", () => {
         readline.question("Set the max number of participants [default 10] > ", (input:string) => {
-            if(input != null && input.match(numberRegex)){
+            if(input.length != 0 && input.match(numberRegex)){
                 socket.emit("max-participants", input);
                 readline.pause();
-            }else if(input == null){
-                socket.emit("max-participants", 10);
-            }
+            }else socket.emit("max-participants", 10);
         })
     });
 
     socket.on("set-rounds", () => {
         readline.question("Set the max number of rounds [default 3] > ", (input:string) => {
-            if(input != null && input.match(numberRegex)){
+            if(input.length != 0 && input.match(numberRegex)){
                 socket.emit("max-rounds", input);
                 readline.pause();
-            }else if(input == null){
-                socket.emit("max-rounds", 3);
-            }
+            }else socket.emit("max-rounds", 3);
         });
     });
 
     socket.on("set-sbleuri", () => {
         readline.question("Set the initial number of sbleuri\n[if don't want to use them, just press enter] > ", (input: string) => {
-            if(input != null && input.match(numberRegex)){
+            if(input.length != 0 && input.match(numberRegex)){
                 socket.emit("init-sbleuri", input);
                 readline.pause();
-            }else if(input == null){
-                socket.emit("init-sbleuri", 3);
-            }
+            }else socket.emit("init-sbleuri", false);
         });
     });
 
     socket.on("set-public", () => {
         readline.question("Is the lobby public? y(es) / n(o) [default yes] > ", (input:string) => {
-            if(input != null && input.match(boolRegex)){
+            if(input.length != 0 && input.match(boolRegex)){
                 if(input == 'y') socket.emit("is-public", true);
                 else if(input == 'n') socket.emit("is-public", false);
                 readline.pause();
-            }else if(input == null){
-                socket.emit("is-public", true);
-            }
+            }else socket.emit("is-public", true);
         });
     });
 
@@ -129,7 +120,7 @@ socket.on('connect', ()=>{
                 socket.emit("start");
                 readline.pause();
             }
-        })
+        });
     });
 
     socket.on("starting", (message) => {
