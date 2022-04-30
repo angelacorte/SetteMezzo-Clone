@@ -1,14 +1,17 @@
 import { GameManager, GameManagerImpl } from "../../src/GameManager"
 import { SetteMezzoGameStateFactory } from "../../src/model/game-state/GameStateFactory";
 import { Player, PlayerImpl } from "../../src/model/Player";
+import { SetteMezzoCard, SetteMezzoValue, BriscolaSuits } from "../../src/model/card/SetteMezzoCard";
+import { GameState, GameStateImpl } from "../model/game-state/GameState";
 
 describe('My Game Manager', ()=>{
     let gameManager: GameManager;
+    let gameState: GameState;
     let player: Player;
     const PLAYER_MONEY = 50;
 
     beforeAll(()=>{
-        let gameState = new SetteMezzoGameStateFactory().createGameState();
+        gameState = new SetteMezzoGameStateFactory().createGameState();
         gameManager = new GameManagerImpl(gameState);
         player = new PlayerImpl("Player one", PLAYER_MONEY);
     })
@@ -34,5 +37,10 @@ describe('My Game Manager', ()=>{
         let playerId = player.getId();
         gameManager.drawCard(playerId);
         expect(gameManager.getPlayerCards(playerId).length).toEqual(1);
+    })
+
+    test('remove card from deck', ()=>{
+        gameManager.removeCardFromDeck(new SetteMezzoCard("testCard", SetteMezzoValue.KING, BriscolaSuits.SWORDS))
+        expect(gameState.getDeck().getList().length).toBe(39)
     })
 })
