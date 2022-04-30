@@ -4,6 +4,7 @@ import {GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import {read} from "fs";
 import {PlayerImpl} from "./model/Player";
+import { EventMap } from "./EventMap";
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
 const readline = require('readline').createInterface({
@@ -28,11 +29,8 @@ let settings: {
     isOpen: true
 };
 
-
-client.registerEvent("draw-card", () => {
-    let card = manager.drawCard(socket.id);
-    client.fireEvent("card-drawn", card, socket.id);
-});
+//SETUP GAME CLIENT EVENT HANDLERS
+client.registerEvents(new EventMap(manager).getEventMap())
 
 socket.on('connect', ()=>{
     console.log("Connected with server");
