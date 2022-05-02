@@ -58,14 +58,14 @@ io.on('connect', (socket: Socket)=>{
             let room = utils.getRandomCode();
             socket.join(room);
             socket.data.room = room;
-            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`);
+            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`, socket.id);
             io.to(room).emit("set-participants");
         }else if (message == 2){ //join a specific lobby
             io.to(socket.id).emit("insert-lobby", "Insert a valid lobby code > ", activeLobbies);
         }else if (message == 3){ //join a random lobby
             let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]  //todo check on maxparticipants and status
             socket.join(room);
-            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`);
+            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`, socket.id);
         }else io.to(socket.id).emit("retry-action");
     });
 
