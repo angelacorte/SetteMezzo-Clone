@@ -27,6 +27,11 @@ export interface LobbyUtils {
      */
     addLobby(lobby: string, id: string, settings: any): void;
 
+    /**
+     * @returns lobby infos
+     * @param lobbyId
+     */
+    getLobby(lobbyId: string): Lobby;
 
     /**
      * remove a lobby from @lobbies array
@@ -86,6 +91,15 @@ export class LobbyUtilsImpl implements LobbyUtils{
                 l.setState(state);
             }
         })
+    }
+
+    getLobby(lobbyId: string): Lobby {
+        let lobby: Lobby;
+        lobbies.some(l => {
+            if(l.getId() === lobbyId) lobby = l;
+        })
+        // @ts-ignore
+        return lobby;
     }
     // lobbySettings(maxParticipants: number, maxRounds: number, initialSbleuri: number, isOpen: boolean): void {
     //     this._maxParticipants = maxParticipants;
