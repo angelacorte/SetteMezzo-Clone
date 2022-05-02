@@ -20,12 +20,12 @@ let startRegex = /s/;
 let settings: {
     maxParticipants: number,
     maxRounds: number,
-    initialSbleuri: any,
+    initialSbleuri: number,
     isOpen: boolean
 } = {
     maxParticipants: 10,
     maxRounds: 3,
-    initialSbleuri: false,
+    initialSbleuri: 0, //if 0 means no bets
     isOpen: true
 };
 
@@ -71,7 +71,7 @@ socket.on('connect', ()=>{
     });
 
     socket.on("new-join", (message, playerId) => {
-        manager.registerPlayer(new PlayerImpl(playerId, settings.initialSbleuri)); //TODO it passes false, because it's initialized as false, initialSbleuri changes its value later
+        manager.registerPlayer(new PlayerImpl(playerId, settings.initialSbleuri));
         console.log(message);
     });
 
@@ -108,7 +108,8 @@ socket.on('connect', ()=>{
 
     socket.on("set-sbleuri", () => {
         readline.question("Set the initial number of sbleuri\n[if don't want to use them, just press enter] > ", (input: string) => {
-            if(input.length != 0 && input.match(numberRegex)) settings.initialSbleuri = input;
+            if(input.length != 0 && input.match(numberRegex)) settings.initialSbleuri = Number(input);
+            if(settings.initialSbleuri != 0) manager.getPlayer(socket.id).addMoney(settings.initialSbleuri);
             socket.emit("init-sbleuri");
             readline.pause();
         });
@@ -135,7 +136,8 @@ socket.on('connect', ()=>{
     });
 
     socket.on("starting", (message) => {
-        console.log("manager ", manager.getPlayers()); //fictitious print just to see if everything's fine --> todo will delete in future
+        //TODO check why it returns different users in different client's connections
+        console.log("manager ", manager.getPlayers()); //fictitious print just to see if everything's fine --> todo delete in future
         console.log(message);
     })
 });
