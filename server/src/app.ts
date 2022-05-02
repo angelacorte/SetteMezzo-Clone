@@ -48,7 +48,7 @@ io.on('connect', (socket: Socket)=>{
     socket.on("set-username", (username) => {
         socket.data.username = username;
         io.to(socket.id).emit("hi-socket", `Hi ${username}, let's play!`);
-        io.to(socket.id).emit("choose-action", "Please press:\n1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby"); //create new lobby, join existing or random lobby
+        io.to(socket.id).emit("choose-action", "Please press:\n", "1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby"); //create new lobby, join existing or random lobby
     });
 
     socket.on("action-chosen", (message) => {
@@ -58,15 +58,15 @@ io.on('connect', (socket: Socket)=>{
             let room = utils.getRandomCode();
             socket.join(room);
             socket.data.room = room;
-            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`, socket.id);
+            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`, socket.data.username, socket.id);
             io.to(room).emit("set-participants");
         }else if (message == 2){ //join a specific lobby
             io.to(socket.id).emit("insert-lobby", "Insert a valid lobby code > ", activeLobbies);
         }else if (message == 3){ //join a random lobby
             let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]  //todo check on maxparticipants and status
             socket.join(room);
-            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`, socket.id);
-        }else io.to(socket.id).emit("retry-action");
+            io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`, socket.data.username, socket.id);
+        }
     });
 
     socket.on("max-participants", () => {
@@ -92,7 +92,7 @@ io.on('connect', (socket: Socket)=>{
         let activeLobbies = lobbyUtils.getLobbies();
         if(activeLobbies.some((l:Lobby) => l.getId() === lobby)){
             socket.join(lobby);
-            io.to(lobby).emit("new-join", `User ${socket.data.username} joined the lobby ${lobby}`, socket.id); //TODO check why socket.id is undefined
+            io.to(lobby).emit("new-join", `User ${socket.data.username} joined the lobby ${lobby}`, socket.data.username,  socket.id); //TODO check why socket.id is undefined
         }else io.to(socket.id).emit("retry-lobby");
     });
 
@@ -100,6 +100,18 @@ io.on('connect', (socket: Socket)=>{
         lobbyUtils.changeState(socket.data.room, LobbyState.STARTED);
         io.to(socket.data.room).emit("starting", "Get ready!");
     });
+
+    socket.on("round", (message) => {
+        console.log(message[0]);
+        console.log(message[1]);
+        console.log("round message 2 3",  message[2], message[3]);
+        io.to(socket.data.room).emit("draw-card", message[2], message[3]);
+    });
+
+    socket.on("card-drawn", (message) => {
+        console.log(message[0]);
+        io.to(socket.data.room).emit("another-card", message[1], message[2]);
+    })
 
     socket.on("disconnect", () => {
         console.log("Client with id: "+socket.id+" disconnected.");
