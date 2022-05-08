@@ -20,35 +20,32 @@ const startRegex = new RegExp(/s/);
 const userRegex: RegExp = new RegExp(/[a-zA-Z]+\d*/g);
 const chooseRegex: RegExp = new RegExp(/[123]/);
 
+let username: string = "";
+let players: Array<Player> = new Array<Player>();
+let ownerId: string = "";
 
-
-let settings: {
-    maxParticipants: number,
-    maxRounds: number,
-    initialSbleuri: number,
-    isOpen: boolean
-} = {
-    maxParticipants: 10,
-    maxRounds: 3,
-    initialSbleuri: 0, //if 0 means no bets
-    isOpen: true
-};
+let infos: { settings: { maxParticipants: number; maxRounds: number; initialSbleuri: number; isOpen: boolean }, /*players: Player[], ownerId: string */} = {
+    settings: {
+        maxParticipants: 10,
+        maxRounds: 3,
+        initialSbleuri: 0, //if 0 means no bets
+        isOpen: true
+    },
+    // players: [],
+    // ownerId: ''
+}
 
 //SETUP GAME CLIENT EVENT HANDLERS
 client.registerEvents(new EventMap(manager).getEventMap())
 
 socket.on('connect', ()=>{
-    console.log("Connected with server");
-
     socket.on("ask-username", ()=>{
-        readline.setPrompt("Hello gamer! Insert your username, please > ");
-        readline.prompt();
-        readline.on("line", (input: string) => {
-            console.log("check regex ", input.match(userRegex)); //TODO non worka bene richiama else if sotto dopo aver inserito la scelta per la lobby
-            if(input.match(userRegex) != null){
-                socket.emit("set-username", input);
+        readline.question("Hello gamer! Insert your username, please > ", (user: string) => {
+            if(user.match(userRegex) != null){
+                username = user;
+                socket.emit("set-username", user);
                 readline.pause();
-            }else if(input.match(userRegex) == null){
+            }else {
                 readline.setPrompt("Username not valid, must not begin with a number. Retry > ");
                 readline.prompt();
             }
@@ -61,10 +58,7 @@ socket.on('connect', ()=>{
 
     socket.on("choose-action", (message1, message2)=>{
         console.log(message1);
-        readline.setPrompt(message2 + "\n > ");
-        readline.prompt();
-        readline.on("line", (input: string) => {
-            console.log("check regex ", input.match(chooseRegex));
+        readline.question(message2 + "\n > ", (input: string) => {
             if(input.match(chooseRegex) != null){
                 socket.emit("action-chosen", input);
                 readline.pause();
@@ -76,7 +70,7 @@ socket.on('connect', ()=>{
     });
 
     socket.on("new-join", (message, username, playerId) => {
-        manager.registerPlayer(new PlayerImpl(playerId, username,  settings.initialSbleuri));
+        manager.registerPlayer(new PlayerImpl(playerId, username, infos.settings.initialSbleuri));
         console.log(message);
     });
 
@@ -97,7 +91,7 @@ socket.on('connect', ()=>{
 
     socket.on("set-participants", () => {
         readline.question("Set the max number of participants [default 10] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)) settings.maxParticipants = Number(input);
+            if(input.length != 0 && input.match(numberRegex)) infos.settings.maxParticipants = Number(input);
             socket.emit("max-participants");
             readline.pause();
         })
@@ -105,7 +99,7 @@ socket.on('connect', ()=>{
 
     socket.on("set-rounds", () => {
         readline.question("Set the max number of rounds [default 3] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)) settings.maxRounds = Number(input);
+            if(input.length != 0 && input.match(numberRegex)) infos.settings.maxRounds = Number(input);
             socket.emit("max-rounds");
             readline.pause();
         });
@@ -113,8 +107,8 @@ socket.on('connect', ()=>{
 
     socket.on("set-sbleuri", () => {
         readline.question("Set the initial number of sbleuri\n[if don't want to use them, just press enter] > ", (input: string) => {
-            if(input.length != 0 && input.match(numberRegex)) settings.initialSbleuri = Number(input);
-            if(settings.initialSbleuri != 0) manager.getPlayer(socket.id).addMoney(settings.initialSbleuri);
+            if(input.length != 0 && input.match(numberRegex)) infos.settings.initialSbleuri = Number(input);
+            if(infos.settings.initialSbleuri != 0) manager.getPlayer(socket.id).addMoney(infos.settings.initialSbleuri);
             socket.emit("init-sbleuri");
             readline.pause();
         });
@@ -123,10 +117,10 @@ socket.on('connect', ()=>{
     socket.on("set-public", () => {
         readline.question("Is the lobby public? y(es) / n(o) [default yes] > ", (input:string) => {
             if(input.length != 0 && input.match(boolRegex)){
-                if(input == 'y') settings.isOpen = true;
-                else if(input == 'n') settings.isOpen = false;
-            }else settings.isOpen = true;
-            socket.emit("is-public", settings);
+                if(input == 'y') infos.settings.isOpen = true;
+                else if(input == 'n') infos.settings.isOpen = false;
+            }else infos.settings.isOpen = true;
+            socket.emit("is-public", infos.settings);
             readline.pause();
         });
     });
@@ -134,64 +128,70 @@ socket.on('connect', ()=>{
     socket.on("start-game", () => {
         readline.question("Press 's' when you want to start playing > \n", (input: string) => {
             if(input.match(startRegex)){
-                socket.emit("start");
+                manager.getPlayers().forEach(p => {
+                    players.push(p);
+                });
+                ownerId = socket.id;
+                socket.emit("start", ownerId, 1, players, 1);
                 readline.pause();
             }
         });
     });
 
-    socket.on("starting", (message) => {
-        //TODO check why it returns different users in different client's connections
-        console.log(message);
-        game(manager.getPlayers())
-        // client.fireEvent("first-turn", )
-    })
-
-    socket.on("draw-card", (username, playerId)=> {
-        console.log("draw card player id ", playerId);
-        let card: Card;
-        if(playerId == socket.id) {
-            card = manager.drawCard(socket.id);
-            client.fireEvent("card-drawn", `Player ${username} draw ${card.getName()}`, username, playerId);
+    socket.on("next-round", (round, playerTurn) => {
+        console.log("next round");
+        if(round >= infos.settings.maxRounds){
+            socket.emit("end-round");
         }
     });
 
-    socket.on("another-card", (username, playerId) => {
-        console.log("another card message ", username, playerId);
-        if(socket.id == playerId){
+    socket.on("get-infos", (owId, pls) => {
+        if(socket.id != owId) {
+            ownerId = owId;
+            pls.forEach((p:any) => {
+                players.push(new PlayerImpl(p.id, p.username, p.moneyAmount));
+            })
+        }
+        else ownerId = socket.id;
+        client.fireEvent("start-round", 0, 0);
+    })
+
+    socket.on("next-player", (round, playerTurn) => {
+        console.log("Now its " + players[playerTurn].getusername() + " turn");
+        client.fireEvent("ask-card", round, playerTurn);
+    });
+
+    socket.on("draw-card", (round, playerTurn)=> {
+        if(socket.id == players[playerTurn].getId()) {
+            let card = manager.drawCard(socket.id);
+            console.log('You draw ' + card.getName());
+            client.fireEvent("card-drawn", "", round, playerTurn);
+        }else{
+            console.log(`${players[playerTurn].getusername()} is playing`);
+        }
+    });
+
+    socket.on("another-card", (msg, round, playerTurn) => {
+        if(players[playerTurn].getId() == socket.id){
             readline.setPrompt(`Player ${username} do you want to draw another card? [y/n] > `);
             readline.prompt();
             readline.on('line', (input:string) => {
                 if(input.match(boolRegex)){
-                    if(input == 'y') client.fireEvent("ask-card", username, playerId);
+                    if(input == 'y') {
+                        let card = manager.drawCard(socket.id);
+                        console.log('You draw ' + card.getName());
+                        client.fireEvent("card-drawn", `Player ${username} draw ${card.getName()}`, round, playerTurn);
+                    }
+                    else client.fireEvent("end-turn", round, playerTurn+1);
                 }
-            })
+            });
         }else{
-            console.log(`${username} is playing`);
+            console.log(`${players[playerTurn].getusername()} is playing`);
+            if(msg.length > 0) console.log(msg);
         }
-        /*readline.setPrompt(`Player ${message[1]} do you want to draw another card? [y/n] > `);
-        readline.prompt();
-        readline.on('line', (input:string) => {
-            if(input.match(boolRegex)){
-                if(input == 'y') client.fireEvent("ask-card", message[1], message[2]);
-            }
-        })*/
+    });
+
+    socket.on("end-game", (message) => {
+        console.log(message);
     })
-    /*socket.on("round", (msg1, msg2, username, playerId) => {
-        console.log(msg1);
-        console.log(msg2);
-        if(playerId === socket.id){
-            client.fireEvent("draw-card", username, playerId)
-        }
-    });*/
 });
-
-function game(players: Map<string, Player>){
-    for(let i=1; i<= settings.maxRounds; i++){
-        players.forEach(p => {
-            client.fireEvent("round", `Round #${i}`, `${p.getusername()} turn`, p.getusername(), p.getId());
-
-            // client.registerEvent("draw-card", usern)
-        })
-    }
-}
