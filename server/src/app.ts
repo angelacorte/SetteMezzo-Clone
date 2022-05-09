@@ -65,6 +65,7 @@ io.on('connect', (socket: Socket)=>{
         }else if (message == 3){ //join a random lobby
             let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]  //todo check on maxparticipants and status
             socket.join(room);
+            socket.data.room = room;
             io.to(room).emit("new-join", `User ${socket.data.username} joined the lobby ${room}`, socket.data.username, socket.id);
         }
     });
@@ -84,7 +85,6 @@ io.on('connect', (socket: Socket)=>{
     socket.on("is-public", (sets: any) => {
         settings = sets;
         lobbyUtils.addLobby(socket.data.room, socket.id, settings);
-        console.log(lobbyUtils.getLobbies()); //TODO check that's everything fine
         io.to(socket.data.room).emit("start-game");
     });
 
@@ -92,11 +92,12 @@ io.on('connect', (socket: Socket)=>{
         let activeLobbies = lobbyUtils.getLobbies();
         if(activeLobbies.some((l:Lobby) => l.getId() === lobby)){
             socket.join(lobby);
-            io.to(lobby).emit("new-join", `User ${socket.data.username} joined the lobby ${lobby}`, socket.data.username,  socket.id); //TODO check why socket.id is undefined
+            socket.data.room = lobby;
+            io.to(lobby).emit("new-join", `User ${socket.data.username} joined the lobby ${lobby}`, socket.data.username,  socket.id);
         }else io.to(socket.id).emit("retry-lobby");
     });
 
-    socket.on("start", (ownerId, round, players, playerTurn) => {
+    socket.on("start", (ownerId, players) => {
         lobbyUtils.changeState(socket.data.room, LobbyState.STARTED);
         socket.data.players = players;
         socket.data.ownerId = ownerId;
@@ -115,30 +116,26 @@ io.on('connect', (socket: Socket)=>{
     });
 
     socket.on("ask-card", (message) => {
-        io.to(socket.data.room).emit("draw-card", message[0], message[1], message[2], message[3]);
+        io.to(socket.data.room).emit("draw-card", message[0], message[1]);
     });
 
     socket.on("end-turn", (message) => {
-        io.to(socket.data.room).emit("next-player", message[0], message[1]);
+        if(message[1] == message[2].length){
+            io.to(socket.data.room).emit("next-round", message[0]+1, 0);
+        }else{
+            io.to(socket.data.room).emit("next-player", message[0], message[1]);
+        }
     })
 
     socket.on("end-round", () => {
-
+        console.log("end round"); //todo
     });
 
-    socket.on("end-game", () => {
-
+    socket.on("end-game", (message) => {
+        console.log('end game '); //todo
     })
 
-    socket.on("round", (message) => {
-        console.log(message[0]);
-        console.log(message[1]);
-        console.log("round message 2 3",  message[2], message[3]);
-        io.to(socket.data.room).emit("draw-card", message[2], message[3]);
-    });
-
     socket.on("card-drawn", (message) => {
-        console.log(message[0]); //TODO delete in future
         io.to(socket.data.room).emit("another-card",message[0], message[1], message[2]);
     })
 

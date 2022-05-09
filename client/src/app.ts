@@ -132,33 +132,41 @@ socket.on('connect', ()=>{
                     players.push(p);
                 });
                 ownerId = socket.id;
-                socket.emit("start", ownerId, 1, players, 1);
+                socket.emit("start", ownerId, players);
                 readline.pause();
             }
         });
     });
 
     socket.on("next-round", (round, playerTurn) => {
-        console.log("next round");
         if(round >= infos.settings.maxRounds){
-            socket.emit("end-round");
+            client.fireEvent("end-game");
+        }else{
+            console.log("=== NEXT ROUND ===");
+            if(players[playerTurn].getId() == socket.id){
+                client.fireEvent("ask-card", round, playerTurn);
+            }
         }
     });
 
     socket.on("get-infos", (owId, pls) => {
+        console.log("=== STARTING ===");
         if(socket.id != owId) {
             ownerId = owId;
             pls.forEach((p:any) => {
                 players.push(new PlayerImpl(p.id, p.username, p.moneyAmount));
             })
+        } else {
+            ownerId = socket.id;
+            client.fireEvent("start-round", 1, 0);
         }
-        else ownerId = socket.id;
-        client.fireEvent("start-round", 0, 0);
     })
 
     socket.on("next-player", (round, playerTurn) => {
-        console.log("Now its " + players[playerTurn].getusername() + " turn");
-        client.fireEvent("ask-card", round, playerTurn);
+        console.log("Now it's " + players[playerTurn].getusername() + " turn");
+        if(players[playerTurn].getId() == socket.id){
+            client.fireEvent("ask-card", round, playerTurn);
+        }
     });
 
     socket.on("draw-card", (round, playerTurn)=> {
@@ -173,16 +181,14 @@ socket.on('connect', ()=>{
 
     socket.on("another-card", (msg, round, playerTurn) => {
         if(players[playerTurn].getId() == socket.id){
-            readline.setPrompt(`Player ${username} do you want to draw another card? [y/n] > `);
-            readline.prompt();
-            readline.on('line', (input:string) => {
+            readline.question(`Player ${username} do you want to draw another card? [y/n] > `, (input:string) => {
                 if(input.match(boolRegex)){
                     if(input == 'y') {
                         let card = manager.drawCard(socket.id);
                         console.log('You draw ' + card.getName());
+                        readline.pause();
                         client.fireEvent("card-drawn", `Player ${username} draw ${card.getName()}`, round, playerTurn);
-                    }
-                    else client.fireEvent("end-turn", round, playerTurn+1);
+                    } else client.fireEvent("end-turn", round, playerTurn+1, players);
                 }
             });
         }else{
