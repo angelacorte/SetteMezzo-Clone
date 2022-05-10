@@ -221,7 +221,8 @@ socket.on('connect', ()=>{
     });
 
     socket.on("card-drawn", (playerId: string, card: Card) => {
-        manager.getPlayerCards(playerId).push(card)
+        console.log("player id ", playerId);
+        if(playerId != socket.id) manager.getPlayerCards(playerId).push(card); //todo da errore
     })
 
     socket.on("bet-made", (playerId: string, bet: number) => {
