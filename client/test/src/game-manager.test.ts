@@ -1,16 +1,28 @@
 import { GameManager, GameManagerImpl } from "../../src/GameManager"
 import { SetteMezzoGameStateFactory } from "../../src/model/game-state/GameStateFactory";
 import { Player, PlayerImpl } from "../../src/model/Player";
+import SocketMock from 'socket.io-mock'
+import { Client, SocketIoClient } from "../../src/Client";
 
-describe('My Game Manager', ()=>{
-    let gameManager: GameManager;
-    let player: Player;
-    const PLAYER_MONEY = 50;
+let socket: any;
+let client: Client;
+let gameManager: GameManager;
+let player: Player;
+const PLAYER_MONEY = 50;
+
+const setup = ()=>{
+    socket = new SocketMock();
+    client = new SocketIoClient(socket);
+    
+    let gameState = new SetteMezzoGameStateFactory().createGameState();
+    gameManager = new GameManagerImpl(gameState);
+    player = new PlayerImpl("Player one", PLAYER_MONEY);
+}
+
+describe('My Game Manager', ()=>{    
 
     beforeAll(()=>{
-        let gameState = new SetteMezzoGameStateFactory().createGameState();
-        gameManager = new GameManagerImpl(gameState);
-        player = new PlayerImpl("Player one", PLAYER_MONEY);
+        setup();
     })
 
     test('there are no players initially', ()=>{
@@ -34,5 +46,16 @@ describe('My Game Manager', ()=>{
         let playerId = player.getId();
         gameManager.drawCard(playerId);
         expect(gameManager.getPlayerCards(playerId).length).toEqual(1);
+    })
+})
+
+describe('Game State changes as clients interact', ()=>{
+
+    beforeAll(()=>{
+        setup();
+    })
+
+    test('drawing cards', ()=>{
+        
     })
 })
