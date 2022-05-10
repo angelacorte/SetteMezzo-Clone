@@ -1,10 +1,8 @@
 import io from "socket.io-client"
-import {SocketIoClient} from "./Client";
 import {GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import {read} from "fs";
 import {Player, PlayerImpl} from "./model/Player";
-import { EventMap } from "./EventMap";
 import {Card} from "./model/card/Card";
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
@@ -12,7 +10,6 @@ const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
 });
-const client = new SocketIoClient(socket);
 const manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
 const numberRegex = new RegExp(/\d/);
 const boolRegex = new RegExp(/[y|n]/);
@@ -31,8 +28,6 @@ let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: numb
     isOpen: true
 }
 
-//SETUP GAME CLIENT EVENT HANDLERS
-client.registerEvents(new EventMap(manager).getEventMap())
 
 socket.on('connect', ()=>{
     socket.on("ask-username", ()=>{
