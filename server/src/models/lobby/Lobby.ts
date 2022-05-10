@@ -1,4 +1,5 @@
-import {LobbyUtils} from "../../utils/LobbyUtils";
+import {SetteMezzoGameStateFactory} from "../../../../client/src/model/game-state/GameStateFactory"
+
 
 /**
  * Enum with the states for a lobby
@@ -14,20 +15,20 @@ export enum LobbyState {
 /**
  * Class Lobby represent all the infos that a lobby must have
  */
-export class Lobby implements LobbyUtils{
+export class Lobby{
     private _id: string;
     private _owner: string;
-    private _deck: any; //Cards[]
+    // private _game: SetteMezzoGameStateFactory; //Cards[]
     private _state: LobbyState;
     private _isOpen: boolean;
     private _maxParticipants: number;
     private _maxRounds: number;
     private _initialSbleuri: number;
 
-    constructor(id:string, owner: string, deck: any, state: LobbyState, isOpen: boolean, maxP: number, maxR: number, initialSbleuri: number) {
+    constructor(id:string, owner: string, state: LobbyState, isOpen: boolean, maxP: number, maxR: number, initialSbleuri: number) {
         this._id = id;
         this._owner = owner;
-        this._deck = deck;
+        // this._game = game;
         this._state = state;
         this._isOpen = isOpen;
         this._maxParticipants = maxP;
@@ -47,13 +48,13 @@ export class Lobby implements LobbyUtils{
         this._owner = value;
     }
 
-    getDeck(): any {
-        return this._deck;
+   /* getGame(): any {
+        return this._game;
     }
 
-    setDeck(value: any) {
-        this._deck = value;
-    }
+    setGame(value: any) {
+        this._game = value;
+    }*/
 
     getState(): LobbyState {
         return this._state;
@@ -99,10 +100,5 @@ export class Lobby implements LobbyUtils{
         return this;
     }
 
-    lobbySettings(maxParticipants: number, maxRounds: number, initialSbleuri: number, isOpen: boolean): void {
-        this._maxParticipants = maxParticipants;
-        this._maxRounds = maxRounds;
-        this._initialSbleuri = initialSbleuri;
-        this._isOpen = isOpen;
-    }
 }
+

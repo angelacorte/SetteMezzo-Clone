@@ -1,12 +1,12 @@
 import {Lobby, LobbyState} from "../../src/models/lobby/Lobby";
-import {getRandomLobby} from "../../src/utils/utils";
+import {getRandomCode} from "../../src/utils/utils";
 
 describe("My lobby", () => {
 
     let lobby: Lobby;
 
     beforeAll(() => {
-        lobby = new Lobby(getRandomLobby(), "Angela", ["King", "Knight"], LobbyState.CREATED, false, 2, 3, 0);
+        lobby = new Lobby(getRandomCode(), "Angela", ["King", "Knight"], LobbyState.CREATED, false, 2, 3, 0);
     });
 
     test("getLobbyOwner", () => {

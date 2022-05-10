@@ -9,6 +9,11 @@ export interface Player{
     getId(): string;
 
     /**
+     * @returns player's username
+     */
+    getusername(): string;
+
+    /**
      * @returns the amount of money the player has left.
      */
     getMoney(): number;
@@ -30,11 +35,17 @@ export interface Player{
 
 export class PlayerImpl implements Player{
     private id: string;
+    private username: string;
     private moneyAmount: number;
 
-    constructor(id: string, moneyAmount: number){
+    constructor(id: string, username: string, moneyAmount: number){
         this.id = id;
+        this.username = username;
         this.moneyAmount = moneyAmount;
+    }
+
+    getusername(): string {
+        return this.username;
     }
 
     /**
