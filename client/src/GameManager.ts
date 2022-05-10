@@ -1,4 +1,5 @@
 import { Card } from './model/card/Card';
+import { Deck } from './model/deck/Deck';
 import { GameState } from './model/game-state/GameState';
 import { Player } from './model/Player';
 
@@ -45,8 +46,6 @@ export interface GameManager {
      */
     drawCard(playerId: string): Card;
 
-    /** @todo remove card**/
-
     /**
      * @returns All the cards assigned to the player.
      * @param playerId The player id.
@@ -54,6 +53,8 @@ export interface GameManager {
     getPlayerCards(playerId: string): Array<Card>;
 
     removeCardFromDeck(card: Card): void;
+
+    getDeck(): Deck;
 }
 
 export class GameManagerImpl implements GameManager {
@@ -108,5 +109,9 @@ export class GameManagerImpl implements GameManager {
 
     removeCardFromDeck(card: Card): void {
         this.gameState.getDeck().removeCard(card);
+    }
+
+    getDeck(): Deck {
+        return this.gameState.getDeck();
     }
 }
