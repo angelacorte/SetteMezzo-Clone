@@ -24,13 +24,11 @@ let username: string = "";
 let players: Array<Player> = new Array<Player>();
 let ownerId: string = "";
 
-let infos: { settings: { maxParticipants: number; maxRounds: number; initialSbleuri: number; isOpen: boolean }, /*players: Player[], ownerId: string */} = {
-    settings: {
-        maxParticipants: 10,
-        maxRounds: 3,
-        initialSbleuri: 0, //if 0 means no bets
-        isOpen: true
-    },
+let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: number; isOpen: boolean } /*players: Player[], ownerId: string */ = {
+    maxParticipants: 10,
+    maxRounds: 3,
+    initialSbleuri: 0, //if 0 means no bets
+    isOpen: true
     // players: [],
     // ownerId: ''
 }
@@ -70,7 +68,7 @@ socket.on('connect', ()=>{
     });
 
     socket.on("new-join", (message, username, playerId) => {
-        manager.registerPlayer(new PlayerImpl(playerId, username, infos.settings.initialSbleuri));
+        manager.registerPlayer(new PlayerImpl(playerId, username, settings.initialSbleuri));
         console.log(message);
     });
 
@@ -91,7 +89,7 @@ socket.on('connect', ()=>{
 
     socket.on("set-participants", () => {
         readline.question("Set the max number of participants [default 10] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)) infos.settings.maxParticipants = Number(input);
+            if(input.length != 0 && input.match(numberRegex)) settings.maxParticipants = Number(input);
             socket.emit("max-participants");
             readline.pause();
         })
@@ -99,7 +97,7 @@ socket.on('connect', ()=>{
 
     socket.on("set-rounds", () => {
         readline.question("Set the max number of rounds [default 3] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)) infos.settings.maxRounds = Number(input);
+            if(input.length != 0 && input.match(numberRegex)) settings.maxRounds = Number(input);
             socket.emit("max-rounds");
             readline.pause();
         });
@@ -107,8 +105,8 @@ socket.on('connect', ()=>{
 
     socket.on("set-sbleuri", () => {
         readline.question("Set the initial number of sbleuri\n[if don't want to use them, just press enter] > ", (input: string) => {
-            if(input.length != 0 && input.match(numberRegex)) infos.settings.initialSbleuri = Number(input);
-            if(infos.settings.initialSbleuri != 0) manager.getPlayer(socket.id).addMoney(infos.settings.initialSbleuri);
+            if(input.length != 0 && input.match(numberRegex)) settings.initialSbleuri = Number(input);
+            if(settings.initialSbleuri != 0) manager.getPlayer(socket.id).addMoney(settings.initialSbleuri);
             socket.emit("init-sbleuri");
             readline.pause();
         });
@@ -117,10 +115,10 @@ socket.on('connect', ()=>{
     socket.on("set-public", () => {
         readline.question("Is the lobby public? y(es) / n(o) [default yes] > ", (input:string) => {
             if(input.length != 0 && input.match(boolRegex)){
-                if(input == 'y') infos.settings.isOpen = true;
-                else if(input == 'n') infos.settings.isOpen = false;
-            }else infos.settings.isOpen = true;
-            socket.emit("is-public", infos.settings);
+                if(input == 'y') settings.isOpen = true;
+                else if(input == 'n') settings.isOpen = false;
+            }else settings.isOpen = true;
+            socket.emit("is-public", settings);
             readline.pause();
         });
     });
@@ -132,27 +130,30 @@ socket.on('connect', ()=>{
                     players.push(p);
                 });
                 ownerId = socket.id;
-                socket.emit("start", ownerId, players);
+                socket.emit("start", ownerId, players, settings);
                 readline.pause();
             }
         });
     });
 
     socket.on("next-round", (round, playerTurn) => {
-        if(round >= infos.settings.maxRounds){
-            client.fireEvent("end-game");
+        if(round > settings.maxRounds){
+            if(players[playerTurn].getId() == socket.id){
+                client.fireEvent("end-game");
+            }
         }else{
-            console.log("=== NEXT ROUND ===");
+            console.log("=== ROUND #" + round + " ===");
             if(players[playerTurn].getId() == socket.id){
                 client.fireEvent("ask-card", round, playerTurn);
             }
         }
     });
 
-    socket.on("get-infos", (owId, pls) => {
+    socket.on("get-infos", (owId, pls, sets) => {
         console.log("=== STARTING ===");
         if(socket.id != owId) {
             ownerId = owId;
+            settings = sets;
             pls.forEach((p:any) => {
                 players.push(new PlayerImpl(p.id, p.username, p.moneyAmount));
             })
@@ -198,6 +199,6 @@ socket.on('connect', ()=>{
     });
 
     socket.on("end-game", (message) => {
-        console.log(message);
+        console.log(message); //todo
     })
 });

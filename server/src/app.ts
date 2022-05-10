@@ -97,11 +97,11 @@ io.on('connect', (socket: Socket)=>{
         }else io.to(socket.id).emit("retry-lobby");
     });
 
-    socket.on("start", (ownerId, players) => {
+    socket.on("start", (ownerId, players, settings) => {
         lobbyUtils.changeState(socket.data.room, LobbyState.STARTED);
         socket.data.players = players;
         socket.data.ownerId = ownerId;
-        io.to(socket.data.room).emit("get-infos", ownerId, players);
+        io.to(socket.data.room).emit("get-infos", ownerId, players, settings);
         // io.to(socket.data.room).emit("draw-card", ownerId, round, players, playerTurn);
     });
 
@@ -121,14 +121,14 @@ io.on('connect', (socket: Socket)=>{
 
     socket.on("end-turn", (message) => {
         if(message[1] == message[2].length){
-            io.to(socket.data.room).emit("next-round", message[0]+1, 0);
+            io.to(socket.data.room).emit("next-round", message[0]+1, 0); //TODO points
         }else{
             io.to(socket.data.room).emit("next-player", message[0], message[1]);
         }
     })
 
     socket.on("end-round", () => {
-        console.log("end round"); //todo
+        io.to(socket.data.room).emit("end-game", "Game ended, wait for results!"); //todo
     });
 
     socket.on("end-game", (message) => {
