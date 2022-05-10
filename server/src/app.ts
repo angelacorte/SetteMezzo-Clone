@@ -134,7 +134,6 @@ io.on('connect', (socket: Socket)=>{
     })
 
     socket.on("disconnect", () => {
-        console.log("Client with id: "+socket.id+" disconnected.");
         //todo check on socket's room, if empty delete it
     });
 

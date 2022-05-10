@@ -30,6 +30,7 @@ let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: numb
 
 
 socket.on('connect', ()=>{
+
     socket.on("ask-username", ()=>{
         readline.question("Hello gamer! Insert your username, please > ", (user: string) => {
             if(user.match(userRegex) != null){
@@ -93,9 +94,8 @@ socket.on('connect', ()=>{
     });
 
     socket.on("set-sbleuri", () => {
-        readline.question("Set the initial number of sbleuri\n[if don't want to use them, just press enter] > ", (input: string) => {
+        readline.question("Set the initial number of sbleuri [default 10] > ", (input: string) => {
             if(input.length != 0 && input.match(numberRegex)) settings.initialSbleuri = Number(input);
-            if(settings.initialSbleuri != 0) manager.getPlayer(socket.id).addMoney(settings.initialSbleuri);
             socket.emit("init-sbleuri");
             readline.pause();
         });
@@ -126,13 +126,12 @@ socket.on('connect', ()=>{
     });
 
     socket.on("get-infos", (owId, pls, sets) => {
-        console.log("pls ", pls);
         if(socket.id != owId) {
-            pls.forEach((p: Player) => {
-                players.push(new PlayerImpl(p.getId(), p.getUsername(), settings.initialSbleuri));
+            settings = sets;
+            pls.forEach((p: { id: string, username: string}) => {
+                players.push(new PlayerImpl(p.id, p.username, settings.initialSbleuri));
             })
             ownerId = owId;
-            settings = sets;
         } else {
             ownerId = socket.id;
             socket.emit("start-round", 1, 0);
@@ -143,24 +142,24 @@ socket.on('connect', ()=>{
         if(round >= settings.maxRounds){
             socket.emit("end-game");
         }else{
-            if(round == 0) console.log("======= STARTING =======");
+            if(round == 1) console.log("======= STARTING =======");
             console.log(`==== ROUND #${round} ====`);
             socket.emit("start-turn", round, playerTurn);
         }
     });
 
-    socket.on("start-turn", (round, playerTurn) => {
-        if(playerTurn == players.length){
-            socket.emit("start-round", round+1, 0);
-        }else{
-            if(players[playerTurn].getId() == socket.id){
+    socket.on("start-turn", (round: number, playerTurn: number) => {
+        if(playerTurn < players.length && players[playerTurn].getId() == socket.id){
+            if(playerTurn == players.length){
+                socket.emit("start-round", round+1, 0);
+            }else{
                 let card: Card = manager.drawCard(socket.id);
                 console.log("You draw " + card.getName());
                 socket.emit("card-drawn", socket.id, card);
                 socket.emit("ask-bet", round, playerTurn);
-            }else{
-                console.log(`${players[playerTurn].getUsername()} is playing`);
             }
+        }else{
+            console.log(`${players[playerTurn].getUsername()} is playing`);
         }
     });
 
@@ -223,7 +222,6 @@ socket.on('connect', ()=>{
 
     socket.on("card-drawn", (playerId: string, card: Card) => {
         manager.getPlayerCards(playerId).push(card)
-        manager.removeCardFromDeck(card);
     })
 
     socket.on("bet-made", (playerId: string, bet: number) => {
