@@ -45,6 +45,8 @@ export interface GameManager {
      */
     drawCard(playerId: string): Card;
 
+    /** @todo remove card**/
+
     /**
      * @returns All the cards assigned to the player.
      * @param playerId The player id.
