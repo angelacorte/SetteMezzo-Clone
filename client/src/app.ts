@@ -136,21 +136,9 @@ socket.on('connect', ()=>{
         });
     });
 
-    socket.on("next-round", (round, playerTurn) => {
-        if(round > settings.maxRounds){
-            if(players[playerTurn].getId() == socket.id){
-                client.fireEvent("end-game");
-            }
-        }else{
-            console.log("=== ROUND #" + round + " ===");
-            if(players[playerTurn].getId() == socket.id){
-                client.fireEvent("ask-card", round, playerTurn);
-            }
-        }
-    });
-
     socket.on("get-infos", (owId, pls, sets) => {
-        console.log("=== STARTING ===");
+        console.log("======= STARTING =======");
+        console.log("==== ROUND #1 ====");
         if(socket.id != owId) {
             ownerId = owId;
             settings = sets;
@@ -164,13 +152,26 @@ socket.on('connect', ()=>{
     })
 
     socket.on("next-player", (round, playerTurn) => {
-        console.log("Now it's " + players[playerTurn].getusername() + " turn");
         if(players[playerTurn].getId() == socket.id){
             client.fireEvent("ask-card", round, playerTurn);
         }
     });
 
+    socket.on("next-round", (round, playerTurn) => {
+        if(round > settings.maxRounds){
+            if(players[playerTurn].getId() == socket.id){
+                client.fireEvent("end-game");
+            }
+        }else{
+            console.log("==== ROUND #" + round + " ====");
+            if(players[playerTurn].getId() == socket.id){
+                client.fireEvent("ask-card", round, playerTurn);
+            }
+        }
+    });
+
     socket.on("draw-card", (round, playerTurn)=> {
+        console.log("=== " + players[playerTurn].getusername() + "'s turn ===");
         if(socket.id == players[playerTurn].getId()) {
             let card = manager.drawCard(socket.id);
             console.log('You draw ' + card.getName());

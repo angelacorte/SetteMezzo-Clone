@@ -128,11 +128,11 @@ io.on('connect', (socket: Socket)=>{
     })
 
     socket.on("end-round", () => {
-        io.to(socket.data.room).emit("end-game", "Game ended, wait for results!"); //todo
+        console.log("end round");
     });
 
     socket.on("end-game", (message) => {
-        console.log('end game '); //todo
+        io.to(socket.data.room).emit("end-game", "Game ended, wait for results!"); //todo
     })
 
     socket.on("card-drawn", (message) => {
