@@ -54,7 +54,7 @@ export class SocketIoClient implements Client{
         })
     }
 
-    public fireEvent(eventName: string, ...payLoad: any[]){
+    public fireEvent(eventName: string, ...payLoad: any){
         this.socket.emit(eventName, payLoad);
     }
 }

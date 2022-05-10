@@ -3,11 +3,12 @@ import { Player, PlayerImpl } from '../../src/model/Player'
 describe('Player', ()=>{
 
     const PLAYER_ID: string = "Player-1";
+    const PLAYER_USERNAME: string = "Mario";
     const PLAYER_MONEY: number = 50;
     let player: Player;
 
     beforeEach(()=>{
-        player = new PlayerImpl(PLAYER_ID, PLAYER_MONEY);
+        player = new PlayerImpl(PLAYER_ID, PLAYER_USERNAME, PLAYER_MONEY);
     })
 
     test('id', ()=>{
@@ -16,6 +17,10 @@ describe('Player', ()=>{
 
     test('getMoney', ()=>{
         expect(player.getMoney()).toEqual(PLAYER_MONEY);
+    })
+
+    test('getUsername', () => {
+        expect(player.getUsername()).toEqual(PLAYER_USERNAME);
     })
 
     test('addMoney', ()=>{

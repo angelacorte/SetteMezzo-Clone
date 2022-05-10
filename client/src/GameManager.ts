@@ -94,6 +94,7 @@ export class GameManagerImpl implements GameManager {
         let card = this.gameState.getDeck().draw();
         let playerCards = this.getPlayerCards(playerId);
         playerCards.push(card);
+        this.removeCardFromDeck(card);
         return card;
     }
 

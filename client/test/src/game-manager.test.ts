@@ -13,7 +13,7 @@ describe('My Game Manager', ()=>{
     beforeAll(()=>{
         gameState = new SetteMezzoGameStateFactory().createGameState();
         gameManager = new GameManagerImpl(gameState);
-        player = new PlayerImpl("Player one", PLAYER_MONEY);
+        player = new PlayerImpl("Player one", "Mario" ,PLAYER_MONEY);
     })
 
     test('there are no players initially', ()=>{

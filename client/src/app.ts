@@ -27,10 +27,8 @@ let ownerId: string = "";
 let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: number; isOpen: boolean } /*players: Player[], ownerId: string */ = {
     maxParticipants: 10,
     maxRounds: 3,
-    initialSbleuri: 0, //if 0 means no bets
+    initialSbleuri: 10,
     isOpen: true
-    // players: [],
-    // ownerId: ''
 }
 
 //SETUP GAME CLIENT EVENT HANDLERS
@@ -50,10 +48,6 @@ socket.on('connect', ()=>{
         });
     });
 
-    socket.on("hi-socket",(message)=>{
-        console.log(message);
-    });
-
     socket.on("choose-action", (message1, message2)=>{
         console.log(message1);
         readline.question(message2 + "\n > ", (input: string) => {
@@ -67,9 +61,9 @@ socket.on('connect', ()=>{
         });
     });
 
-    socket.on("new-join", (message, username, playerId) => {
+    socket.on("new-join", (username, playerId, room) => {
         manager.registerPlayer(new PlayerImpl(playerId, username, settings.initialSbleuri));
-        console.log(message);
+        console.log(`User ${username} joined the lobby ${room}`);
     });
 
     socket.on("insert-lobby", (message, rooms) => {
@@ -126,10 +120,10 @@ socket.on('connect', ()=>{
     socket.on("start-game", () => {
         readline.question("Press 's' when you want to start playing > \n", (input: string) => {
             if(input.match(startRegex)){
-                manager.getPlayers().forEach(p => {
-                    players.push(p);
-                });
                 ownerId = socket.id;
+                manager.getPlayers().forEach((p:Player) => {
+                    players.push(p);
+                })
                 socket.emit("start", ownerId, players, settings);
                 readline.pause();
             }
@@ -137,51 +131,84 @@ socket.on('connect', ()=>{
     });
 
     socket.on("get-infos", (owId, pls, sets) => {
-        console.log("======= STARTING =======");
-        console.log("==== ROUND #1 ====");
+        console.log("pls ", pls);
         if(socket.id != owId) {
+            pls.forEach((p: Player) => {
+                players.push(new PlayerImpl(p.getId(), p.getUsername(), settings.initialSbleuri));
+            })
             ownerId = owId;
             settings = sets;
-            pls.forEach((p:any) => {
-                players.push(new PlayerImpl(p.id, p.username, p.moneyAmount));
-            })
         } else {
             ownerId = socket.id;
-            client.fireEvent("start-round", 1, 0);
+            socket.emit("start-round", 1, 0);
+        }
+    })
+
+    socket.on("start-round", (round, playerTurn) => {
+        if(round >= settings.maxRounds){
+            socket.emit("end-game");
+        }else{
+            if(round == 0) console.log("======= STARTING =======");
+            console.log(`==== ROUND #${round} ====`);
+            socket.emit("start-turn", round, playerTurn);
+        }
+    });
+
+    socket.on("start-turn", (round, playerTurn) => {
+        if(playerTurn == players.length){
+            socket.emit("start-round", round+1, 0);
+        }else{
+            if(players[playerTurn].getId() == socket.id){
+                let card: Card = manager.drawCard(socket.id);
+                console.log("You draw " + card.getName());
+                socket.emit("card-drawn", socket.id, card);
+                socket.emit("ask-bet", round, playerTurn);
+            }else{
+                console.log(`${players[playerTurn].getUsername()} is playing`);
+            }
+        }
+    });
+
+    socket.on("make-bet", (round, playerTurn) => {
+        if(players[playerTurn].getId() == socket.id) {
+            let sbleuri = players[playerTurn].getMoney();
+            if (sbleuri > 0) {
+                readline.question(`Make a bet [max ${sbleuri} Sbleuri] > `, (input: string) => {
+                    if (input.match(numberRegex) && parseInt(input) <= sbleuri) {
+                        manager.registerBet(socket.id, parseInt(input));
+                        //TODO understand how to manage sbleuris
+                        socket.emit("bet-made", socket.id, parseInt(input));
+                        socket.emit("ask-card", round, playerTurn);
+                    }
+                });
+            } else {
+                console.log("Sbleuri finished, you lost!"); //todo
+            }
+        }else{
+            console.log(`${players[playerTurn].getUsername()} is making a bet`);
         }
     })
 
     socket.on("next-player", (round, playerTurn) => {
         if(players[playerTurn].getId() == socket.id){
-            client.fireEvent("ask-card", round, playerTurn);
+            socket.emit("ask-first-card", round, playerTurn);
         }
     });
 
     socket.on("next-round", (round, playerTurn) => {
         if(round > settings.maxRounds){
             if(players[playerTurn].getId() == socket.id){
-                client.fireEvent("end-game");
+                socket.emit("end-game");
             }
         }else{
             console.log("==== ROUND #" + round + " ====");
             if(players[playerTurn].getId() == socket.id){
-                client.fireEvent("ask-card", round, playerTurn);
+                socket.emit("ask-card", round, playerTurn);
             }
         }
     });
 
-    socket.on("draw-card", (round, playerTurn)=> {
-        console.log("=== " + players[playerTurn].getusername() + "'s turn ===");
-        if(socket.id == players[playerTurn].getId()) {
-            let card = manager.drawCard(socket.id);
-            console.log('You draw ' + card.getName());
-            client.fireEvent("card-drawn", "", round, playerTurn);
-        }else{
-            console.log(`${players[playerTurn].getusername()} is playing`);
-        }
-    });
-
-    socket.on("another-card", (msg, round, playerTurn) => {
+    socket.on("another-card", (round, playerTurn) => {
         if(players[playerTurn].getId() == socket.id){
             readline.question(`Player ${username} do you want to draw another card? [y/n] > `, (input:string) => {
                 if(input.match(boolRegex)){
@@ -189,13 +216,13 @@ socket.on('connect', ()=>{
                         let card = manager.drawCard(socket.id);
                         console.log('You draw ' + card.getName());
                         readline.pause();
-                        client.fireEvent("card-drawn", `Player ${username} draw ${card.getName()}`, round, playerTurn);
-                    } else client.fireEvent("end-turn", round, playerTurn+1, players);
+                        socket.emit("card-drawn", socket.id, card);
+                        socket.emit("ask-card", round, playerTurn);
+                    } else socket.emit("end-turn", round, playerTurn+1, players.length);
                 }
             });
         }else{
-            console.log(`${players[playerTurn].getusername()} is playing`);
-            if(msg.length > 0) console.log(msg);
+            console.log(`${players[playerTurn].getUsername()} is playing`);
         }
     });
 

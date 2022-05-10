@@ -11,7 +11,7 @@ export interface Player{
     /**
      * @returns player's username
      */
-    getusername(): string;
+    getUsername(): string;
 
     /**
      * @returns the amount of money the player has left.
@@ -44,7 +44,7 @@ export class PlayerImpl implements Player{
         this.moneyAmount = moneyAmount;
     }
 
-    getusername(): string {
+    getUsername(): string {
         return this.username;
     }
 
