@@ -226,6 +226,15 @@ socket.on('connect', ()=>{
         }
     });
 
+    socket.on("card-drawn", (playerId: string, card: Card) => {
+        manager.getPlayerCards(playerId).push(card)
+        manager.removeCardFromDeck(card);
+    })
+
+    socket.on("bet-made", (playerId: string, bet: number) => {
+        manager.registerBet(playerId, bet);
+    })
+
     socket.on("end-game", (message) => {
         console.log(message); //todo
     })
