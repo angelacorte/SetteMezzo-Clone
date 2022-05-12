@@ -62,11 +62,11 @@ export class LobbyUtilsImpl implements LobbyUtils{
 
     private gameManager: GameManager | undefined;
 
-    public addLobby(lobby: string, id: string, settings: any): void {
+    public addLobby(lobby: string, owenerId: string, settings: any): void {
         /*let game = new SetteMezzoGameStateFactory().createGameState();
         this.gameManager = new GameManagerImpl(game);
         this.gameManager.registerPlayer(new PlayerImpl(id, settings.initialSbleuri));*/
-        lobbies.push(new Lobby(lobby, id, LobbyState.CREATED, settings.isOpen, settings.maxParticipants, settings.maxRounds, settings.initialSbleuri));
+        lobbies.push(new Lobby(lobby, owenerId, LobbyState.CREATED, settings.isOpen, settings.maxParticipants, settings.maxRounds, settings.initialSbleuri));
     }
 
     public getLobbies(): Lobby[] {
