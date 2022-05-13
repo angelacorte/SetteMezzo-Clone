@@ -52,8 +52,9 @@ export interface GameManager {
      */
     getPlayerCards(playerId: string): Array<Card>;
 
-    removeCardFromDeck(card: Card): void;
-
+    /**
+     * @returns the Deck;
+     */
     getDeck(): Deck;
 }
 
@@ -107,11 +108,11 @@ export class GameManagerImpl implements GameManager {
         return playerCards;
     }
 
-    removeCardFromDeck(card: Card): void {
+    private removeCardFromDeck(card: Card): void {
         this.gameState.getDeck().removeCard(card);
     }
 
     getDeck(): Deck {
-        return this.gameState.getDeck();
+        return this.gameState.getDeck();    
     }
 }
