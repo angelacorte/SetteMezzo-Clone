@@ -1,8 +1,7 @@
 import { GameManager, GameManagerImpl } from "../../src/GameManager"
 import { SetteMezzoGameStateFactory } from "../../src/model/game-state/GameStateFactory";
 import { Player, PlayerImpl } from "../../src/model/Player";
-import { SetteMezzoCard, SetteMezzoValue, BriscolaSuits } from "../../src/model/card/SetteMezzoCard";
-import { GameState, GameStateImpl } from "../model/game-state/GameState";
+import { GameState} from "../model/game-state/GameState";
 
 describe('My Game Manager', ()=>{
     let gameManager: GameManager;
@@ -16,7 +15,7 @@ describe('My Game Manager', ()=>{
         player = new PlayerImpl("Player one", "Mario" ,PLAYER_MONEY);
     })
 
-    test('there are no players initially', ()=>{
+    test('all things are ok', ()=>{
         let players = gameManager.getPlayers();
         expect(players.size).toEqual(0);
     })
@@ -40,7 +39,7 @@ describe('My Game Manager', ()=>{
     })
 
     test('remove card from deck', ()=>{
-        gameManager.removeCardFromDeck(new SetteMezzoCard("testCard", SetteMezzoValue.KING, BriscolaSuits.SWORDS))
-        expect(gameState.getDeck().getList().length).toBe(39)
+        gameManager.drawCard(player.getId())
+        expect(gameState.getDeck().getList().length).toBe(38)
     })
 })
