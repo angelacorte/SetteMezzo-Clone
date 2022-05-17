@@ -42,16 +42,11 @@ routes(app);
 
 io.on('connect', (socket: Socket)=>{
 
-    io.to(socket.id).emit("ask-username");
-
     socket.on("set-username", (username) => {
         socket.data.username = username;
         io.to(socket.id).emit("choose-action", "Please press: ", "1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby"); //create new lobby, join existing or random lobby
     });
 
-    socket.on("retry-username", () => {
-        io.to(socket.id).emit("retry-username");
-    })
 
     socket.on("action-chosen", (message) => {
         let activeLobbies: string[] = [];

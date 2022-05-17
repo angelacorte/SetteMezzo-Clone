@@ -2,15 +2,17 @@ import io from "socket.io-client"
 import {GameManager, GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import {LobbyState} from "../../server/src/models/lobby/Lobby"
-import {read} from "fs";
+import {readline} from "readline-promise"
 import {Player, PlayerImpl} from "./model/Player";
 import {Card} from "./model/card/Card";
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
-const readline = require('readline').createInterface({
+const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
+    terminal: true
 });
+
 let manager: GameManager;
 const numberRegex = new RegExp(/\d/);
 const boolRegex = new RegExp(/[y|n]/);
@@ -32,33 +34,44 @@ let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: numb
     isOpen: true
 }
 
+function askAction(): number {
+    let message = "Please press: \n1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby\n > ";
+    rl.questionAsync(message).then((input: string) => {
+        if(input.match(chooseRegex) != null){
+            // socket.emit("action-chosen", input);
+            readline.pause();
+            parseInt(input);
+        }else{
+            askAction();
+        }
+    });
+}
 
 socket.on('connect', ()=>{
     manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
 
-    socket.on("ask-username", ()=>{
-        readline.question("Hello gamer! Insert your username, please > ", (user: string) => {
-            if(user.match(userRegex) != null){
-                username = user;
-                socket.emit("set-username", user);
-                readline.pause();
-            }else {
-                socket.emit("retry-username");
-            }
-        });
+    readline.question("Hello gamer! Insert your username, please > ", async (user: string) => {
+        username = user;
+        readline.pause();
+        const action = await askAction();
+        console.log("action" + action);
+
+        /*switch (action) {
+            case -1:
+                //todo
+                break;
+            case 1:
+                console.log("action" + action);
+                break;
+            case 2:
+                console.log("action" + action);
+                break;
+            case 3:
+                console.log("action" + action);
+                break;
+        }*/
     });
 
-    socket.on("retry-username", () => {
-        readline.question("Not a valid username, must not begin with numbers. Retry > ", (user: string) => {
-            if(user.match(userRegex) != null){
-                username = user;
-                socket.emit("set-username", user);
-                readline.pause();
-            }else {
-                socket.emit("retry-username");
-            }
-        })
-    })
 
     socket.on("choose-action", (message1, message2)=>{
         console.log(message1);
@@ -87,7 +100,7 @@ socket.on('connect', ()=>{
     socket.on("new-join", (username, playerId, room, sets, owner) => {
         if(owner == socket.id){
             manager.registerPlayer(new PlayerImpl(playerId, username, settings.initialSbleuri));
-            if(manager.getPlayers().size == settings.maxParticipants) {
+            if(manager.getPlayers().length == settings.maxParticipants) {
                 console.log("Lobby has reached max number of participants.");
                 socket.emit("change-lobby-state", LobbyState.FULL);
             }
@@ -193,11 +206,11 @@ socket.on('connect', ()=>{
     socket.on("start-turn", () => {
         playerTurn += 1;
         if(playerTurn < players.length){ //turno non finito
-            if(players[0].getId() == socket.id){
+            if(players[playerTurn].getId() == socket.id){
                 let card: Card = manager.drawCard(socket.id);
                 console.log("You draw " + card.getName());
                 socket.emit("card-drawn", socket.id, card);
-                socket.emit("ask-bet"); //todo qui ci arriva ma poi non va oltre
+                socket.emit("ask-bet");
             }else{
                 console.log(`${players[playerTurn].getUsername()} is playing`);
             }
