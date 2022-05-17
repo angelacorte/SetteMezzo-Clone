@@ -10,10 +10,10 @@ export interface GameStateFactory {
 export class SetteMezzoGameStateFactory implements GameStateFactory {
     createGameState(): GameState {
         let deck = new SetteMezzoDeckFactory().createDeck();
-        let players = new Map<string, Player>();
+        let players = new Array<Player>();
         let bets = new Map<string, Array<number>>();
-        let table = new Map<string, Array<Card>>()
-        return new GameStateImpl(deck, players, bets, table);
+        let playerCards = new Map<string, Array<Card>>()
+        return new GameStateImpl(deck, players, bets, playerCards);
     }
     
 }

@@ -10,7 +10,7 @@ export interface GameManager {
     /**
      * @returns all the players in play.
      */
-    getPlayers(): Map<string, Player>;
+    getPlayers(): Array<Player>;
 
     /**
      * 
@@ -53,6 +53,13 @@ export interface GameManager {
     getPlayerCards(playerId: string): Array<Card>;
 
     /**
+     * Adds the card to the player cards.
+     * @param playerId The player id.
+     * @param card The card to add.
+     */
+    updatePlayerCards(playerId: string, card: Card): void;
+
+    /**
      * @returns the Deck;
      */
     getDeck(): Deck;
@@ -66,19 +73,19 @@ export class GameManagerImpl implements GameManager {
     }
 
     getPlayer(playerId: string): Player {
-        let player = this.gameState.getPlayers().get(playerId);
+        let player = this.gameState.getPlayers().filter((player) => player.getId() == playerId).pop();
         if(!player) throw new Error("Player not found");
         return player;
     }
 
-    getPlayers(): Map<string, Player> {
+    getPlayers(): Array<Player> {
         return this.gameState.getPlayers();
     }
 
     registerPlayer(player: Player): void {
-        this.gameState.getPlayers().set(player.getId(), player);
+        this.gameState.getPlayers().push(player);
         this.gameState.getBets().set(player.getId(), new Array<number>())
-        this.gameState.getTable().set(player.getId(), new Array<Card>());
+        this.gameState.getPlayerCards().set(player.getId(), new Array<Card>());
     }
 
     getPlayerBets(playerId: string): Array<number> {
@@ -96,20 +103,19 @@ export class GameManagerImpl implements GameManager {
 
     drawCard(playerId: string): Card {
         let card = this.gameState.getDeck().draw();
-        let playerCards = this.getPlayerCards(playerId);
-        playerCards.push(card);
-        this.removeCardFromDeck(card);
+        this.updatePlayerCards(playerId, card);
         return card;
     }
 
     getPlayerCards(playerId: string): Array<Card> {
-        let playerCards = this.gameState.getTable().get(playerId);
+        let playerCards = this.gameState.getPlayerCards().get(playerId);
         if(!playerCards) throw new Error('Player not found.');
         return playerCards;
     }
 
-    private removeCardFromDeck(card: Card): void {
+    updatePlayerCards(playerId: string, card: Card) {
         this.gameState.getDeck().removeCard(card);
+        this.gameState.getPlayerCards().get(playerId)?.push(card);
     }
 
     getDeck(): Deck {
