@@ -1,6 +1,7 @@
 import io from "socket.io-client"
-import {GameManagerImpl} from "./GameManager";
+import {GameManager, GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
+import {LobbyState} from "../../server/src/models/lobby/Lobby"
 import {read} from "fs";
 import {Player, PlayerImpl} from "./model/Player";
 import {Card} from "./model/card/Card";
@@ -10,7 +11,7 @@ const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
 });
-const manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
+let manager: GameManager;
 const numberRegex = new RegExp(/\d/);
 const boolRegex = new RegExp(/[y|n]/);
 const startRegex = new RegExp(/s/);
@@ -21,7 +22,10 @@ let username: string = "";
 let players: Array<Player> = new Array<Player>();
 let ownerId: string = "";
 
-let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: number; isOpen: boolean } /*players: Player[], ownerId: string */ = {
+let round: number = 0;
+let playerTurn: number = -1;
+
+let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: number; isOpen: boolean } = {
     maxParticipants: 10,
     maxRounds: 3,
     initialSbleuri: 10,
@@ -30,6 +34,7 @@ let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: numb
 
 
 socket.on('connect', ()=>{
+    manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
 
     socket.on("ask-username", ()=>{
         readline.question("Hello gamer! Insert your username, please > ", (user: string) => {
@@ -38,11 +43,22 @@ socket.on('connect', ()=>{
                 socket.emit("set-username", user);
                 readline.pause();
             }else {
-                readline.setPrompt("Username not valid, must not begin with a number. Retry > ");
-                readline.prompt();
+                socket.emit("retry-username");
             }
         });
     });
+
+    socket.on("retry-username", () => {
+        readline.question("Not a valid username, must not begin with numbers. Retry > ", (user: string) => {
+            if(user.match(userRegex) != null){
+                username = user;
+                socket.emit("set-username", user);
+                readline.pause();
+            }else {
+                socket.emit("retry-username");
+            }
+        })
+    })
 
     socket.on("choose-action", (message1, message2)=>{
         console.log(message1);
@@ -51,33 +67,54 @@ socket.on('connect', ()=>{
                 socket.emit("action-chosen", input);
                 readline.pause();
             }else{
-                readline.setPrompt("Not a valid option, retry > ");
-                readline.prompt();
+                socket.emit("retry-action", message2);
             }
         });
     });
 
-    socket.on("new-join", (username, playerId, room) => {
-        manager.registerPlayer(new PlayerImpl(playerId, username, settings.initialSbleuri));
-        console.log(`User ${username} joined the lobby ${room}`);
-    });
-
-    socket.on("insert-lobby", (message, rooms) => {
-        console.log("Valid lobbies: ", rooms)
+    socket.on("retry-action", (message) => {
+        console.log("Not a valid option, retry. ");
         readline.question(message, (input: string) => {
-            socket.emit("join-lobby", input);
-            readline.pause();
+            if(input.match(chooseRegex) != null){
+                socket.emit("action-chosen", input);
+                readline.pause();
+            }else{
+                socket.emit("retry-action", message);
+            }
         })
     });
 
-    socket.on("retry-lobby", ()=>{
-        readline.question("Not a valid lobby, retry > ", (input: string) => {
+    socket.on("new-join", (username, playerId, room, sets, owner) => {
+        if(owner == socket.id){
+            manager.registerPlayer(new PlayerImpl(playerId, username, settings.initialSbleuri));
+            if(manager.getPlayers().size == settings.maxParticipants) {
+                console.log("Lobby has reached max number of participants.");
+                socket.emit("change-lobby-state", LobbyState.FULL);
+            }
+        }else {
+            settings = sets;
+        }
+        console.log(`User ${username} joined the lobby ${room}`);
+    });
+
+    socket.on("insert-lobby", () => {
+        readline.question("Insert a valid lobby > ", (input: string) => {
+            socket.emit("join-lobby", input);
+            readline.pause();
+        });
+    });
+
+    socket.on("retry-lobby", (lobbies: string[])=>{
+        console.log("Not a valid lobby.");
+        console.log("Lobbies: " + lobbies)
+        readline.question("Retry > ", (input: string) => {
             socket.emit("join-lobby", input);
             readline.pause();
         });
     });
 
     socket.on("set-participants", () => {
+        settings.maxParticipants = 10;
         readline.question("Set the max number of participants [default 10] > ", (input:string) => {
             if(input.length != 0 && input.match(numberRegex)) settings.maxParticipants = Number(input);
             socket.emit("max-participants");
@@ -113,12 +150,14 @@ socket.on('connect', ()=>{
     });
 
     socket.on("start-game", () => {
+        socket.emit("change-lobby-state", LobbyState.CREATED);
         readline.question("Press 's' when you want to start playing > \n", (input: string) => {
             if(input.match(startRegex)){
                 ownerId = socket.id;
                 manager.getPlayers().forEach((p:Player) => {
                     players.push(p);
                 })
+                socket.emit("change-lobby-state", LobbyState.STARTED);
                 socket.emit("start", ownerId, players, settings);
                 readline.pause();
             }
@@ -130,49 +169,50 @@ socket.on('connect', ()=>{
             settings = sets;
             pls.forEach((p: { id: string, username: string}) => {
                 players.push(new PlayerImpl(p.id, p.username, settings.initialSbleuri));
+                manager.registerPlayer(new PlayerImpl(p.id, p.username, settings.initialSbleuri));
             })
             ownerId = owId;
         } else {
             ownerId = socket.id;
-            socket.emit("start-round", 1, 0);
+            socket.emit("start-round");
         }
     })
 
-    socket.on("start-round", (round, playerTurn) => {
-        if(round >= settings.maxRounds){
+    socket.on("start-round", () => {
+        round += 1;
+        playerTurn = -1;
+        if(round > settings.maxRounds){
             socket.emit("end-game");
         }else{
             if(round == 1) console.log("======= STARTING =======");
             console.log(`==== ROUND #${round} ====`);
-            socket.emit("start-turn", round, playerTurn);
+            if(players[0].getId() == socket.id) socket.emit("start-turn");
         }
     });
 
-    socket.on("start-turn", (round: number, playerTurn: number) => {
-        if(playerTurn < players.length && players[playerTurn].getId() == socket.id){
-            if(playerTurn == players.length){
-                socket.emit("start-round", round+1, 0);
-            }else{
+    socket.on("start-turn", () => {
+        playerTurn += 1;
+        if(playerTurn < players.length){ //turno non finito
+            if(players[0].getId() == socket.id){
                 let card: Card = manager.drawCard(socket.id);
                 console.log("You draw " + card.getName());
                 socket.emit("card-drawn", socket.id, card);
-                socket.emit("ask-bet", round, playerTurn);
+                socket.emit("ask-bet"); //todo qui ci arriva ma poi non va oltre
+            }else{
+                console.log(`${players[playerTurn].getUsername()} is playing`);
             }
-        }else{
-            console.log(`${players[playerTurn].getUsername()} is playing`);
+        }else{ //turno finito, prossimo round
+            socket.emit("start-round");
         }
     });
 
-    socket.on("make-bet", (round, playerTurn) => {
+    socket.on("make-bet", () => {
         if(players[playerTurn].getId() == socket.id) {
             let sbleuri = players[playerTurn].getMoney();
             if (sbleuri > 0) {
-                readline.question(`Make a bet [max ${sbleuri} Sbleuri] > `, (input: string) => {
+                readline.question(`Make a bet [you have ${sbleuri} Sbleuri] > `, (input: string) => {
                     if (input.match(numberRegex) && parseInt(input) <= sbleuri) {
-                        manager.registerBet(socket.id, parseInt(input));
-                        //TODO understand how to manage sbleuris
                         socket.emit("bet-made", socket.id, parseInt(input));
-                        socket.emit("ask-card", round, playerTurn);
                     }
                 });
             } else {
@@ -183,26 +223,7 @@ socket.on('connect', ()=>{
         }
     })
 
-    socket.on("next-player", (round, playerTurn) => {
-        if(players[playerTurn].getId() == socket.id){
-            socket.emit("ask-first-card", round, playerTurn);
-        }
-    });
-
-    socket.on("next-round", (round, playerTurn) => {
-        if(round > settings.maxRounds){
-            if(players[playerTurn].getId() == socket.id){
-                socket.emit("end-game");
-            }
-        }else{
-            console.log("==== ROUND #" + round + " ====");
-            if(players[playerTurn].getId() == socket.id){
-                socket.emit("ask-card", round, playerTurn);
-            }
-        }
-    });
-
-    socket.on("another-card", (round, playerTurn) => {
+    socket.on("another-card", () => {
         if(players[playerTurn].getId() == socket.id){
             readline.question(`Player ${username} do you want to draw another card? [y/n] > `, (input:string) => {
                 if(input.match(boolRegex)){
@@ -211,8 +232,7 @@ socket.on('connect', ()=>{
                         console.log('You draw ' + card.getName());
                         readline.pause();
                         socket.emit("card-drawn", socket.id, card);
-                        socket.emit("ask-card", round, playerTurn);
-                    } else socket.emit("end-turn", round, playerTurn+1, players.length);
+                    } else socket.emit("end-turn");
                 }
             });
         }else{
@@ -221,12 +241,13 @@ socket.on('connect', ()=>{
     });
 
     socket.on("card-drawn", (playerId: string, card: Card) => {
-        console.log("player id ", playerId);
-        if(playerId != socket.id) manager.getPlayerCards(playerId).push(card); //todo da errore
+        manager.getPlayerCards(playerId).push(card);
+        socket.emit("ask-card");
     })
 
     socket.on("bet-made", (playerId: string, bet: number) => {
         manager.registerBet(playerId, bet);
+        socket.emit("ask-card");
     })
 
     socket.on("end-game", (message) => {
