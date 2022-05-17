@@ -28,7 +28,6 @@ export class Lobby{
     constructor(id:string, owner: string, state: LobbyState, isOpen: boolean, maxP: number, maxR: number, initialSbleuri: number) {
         this._id = id;
         this._owner = owner;
-        // this._game = game;
         this._state = state;
         this._isOpen = isOpen;
         this._maxParticipants = maxP;
@@ -47,14 +46,6 @@ export class Lobby{
     setOwner(value: string) {
         this._owner = value;
     }
-
-   /* getGame(): any {
-        return this._game;
-    }
-
-    setGame(value: any) {
-        this._game = value;
-    }*/
 
     getState(): LobbyState {
         return this._state;

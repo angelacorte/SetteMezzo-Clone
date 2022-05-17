@@ -60,12 +60,7 @@ export interface LobbyUtils {
 
 export class LobbyUtilsImpl implements LobbyUtils{
 
-    private gameManager: GameManager | undefined;
-
     public addLobby(lobby: string, owenerId: string, settings: any): void {
-        /*let game = new SetteMezzoGameStateFactory().createGameState();
-        this.gameManager = new GameManagerImpl(game);
-        this.gameManager.registerPlayer(new PlayerImpl(id, settings.initialSbleuri));*/
         lobbies.push(new Lobby(lobby, owenerId, LobbyState.CREATED, settings.isOpen, settings.maxParticipants, settings.maxRounds, settings.initialSbleuri));
     }
 
@@ -85,7 +80,7 @@ export class LobbyUtilsImpl implements LobbyUtils{
         })
     }
 
-    public changeState(lobbyId: string, state: LobbyState){
+    public changeState(lobbyId: string, state: LobbyState): void{
         lobbies.some((l, i) => {
             if(l.getId() === lobbyId){
                 l.setState(state);
@@ -94,18 +89,8 @@ export class LobbyUtilsImpl implements LobbyUtils{
     }
 
     getLobby(lobbyId: string): Lobby {
-        let lobby: Lobby;
-        lobbies.some(l => {
-            if(l.getId() === lobbyId) lobby = l;
-        })
-        // @ts-ignore
+        let lobby: Lobby = lobbies.filter((l:Lobby) => l.getId() == lobbyId)[0];
+        if(!lobby) throw new Error("Lobby not found");
         return lobby;
     }
-    // lobbySettings(maxParticipants: number, maxRounds: number, initialSbleuri: number, isOpen: boolean): void {
-    //     this._maxParticipants = maxParticipants;
-    //     this._maxRounds = maxRounds;
-    //     this._initialSbleuri = initialSbleuri;
-    //     this._isOpen = isOpen;
-    // } //maybe useless
-
 }
