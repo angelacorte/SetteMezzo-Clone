@@ -2,16 +2,11 @@ import io from "socket.io-client"
 import {GameManager, GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import {LobbyState} from "../../server/src/models/lobby/Lobby"
-import {readline} from "readline-promise"
 import {Player, PlayerImpl} from "./model/Player";
 import {Card} from "./model/card/Card";
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: true
-});
+const inquirer = require("inquirer");
 
 let manager: GameManager;
 const numberRegex = new RegExp(/\d/);
@@ -34,29 +29,23 @@ let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: numb
     isOpen: true
 }
 
-function askAction(): number {
+async function askAction(): Promise<number> {
     let message = "Please press: \n1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby\n > ";
-    rl.questionAsync(message).then((input: string) => {
-        if(input.match(chooseRegex) != null){
-            // socket.emit("action-chosen", input);
-            readline.pause();
-            parseInt(input);
-        }else{
-            askAction();
-        }
-    });
+    return inquirer
+            .prompt([message])
+            .then((answer: string)=> {Promise.resolve(parseInt(answer))})
+            .catch((error:string)=>{Promise.reject(error)})
 }
 
 socket.on('connect', ()=>{
     manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
-
-    readline.question("Hello gamer! Insert your username, please > ", async (user: string) => {
+    /*readline.question("Hello gamer! Insert your username, please > ", async (user: string) => {
         username = user;
         readline.pause();
         const action = await askAction();
         console.log("action" + action);
 
-        /*switch (action) {
+        switch (action) {
             case -1:
                 //todo
                 break;
@@ -69,10 +58,10 @@ socket.on('connect', ()=>{
             case 3:
                 console.log("action" + action);
                 break;
-        }*/
+        }
     });
-
-
+    */
+    /*
     socket.on("choose-action", (message1, message2)=>{
         console.log(message1);
         readline.question(message2 + "\n > ", (input: string) => {
@@ -266,4 +255,5 @@ socket.on('connect', ()=>{
     socket.on("end-game", (message) => {
         console.log(message); //todo
     })
+    */
 });
