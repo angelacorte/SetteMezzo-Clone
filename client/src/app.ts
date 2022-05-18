@@ -4,96 +4,85 @@ import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import {LobbyState} from "../../server/src/models/lobby/Lobby"
 import {Player, PlayerImpl} from "./model/Player";
 import {Card} from "./model/card/Card";
-const serverUrl = 'http://localhost:3000';
-const socket = io(serverUrl);
 import inquirer from "inquirer";
 
-let manager: GameManager;
-const numberRegex = new RegExp(/\d/);
-const boolRegex = new RegExp(/[y|n]/);
-const startRegex = new RegExp(/s/);
-const userRegex: RegExp = new RegExp(/[a-zA-Z]+\d*/g);
-const chooseRegex: RegExp = new RegExp(/[123]/);
 
+const serverUrl = 'http://localhost:3000';
+const socket = io(serverUrl);
+const NEW_LOBBY = "Create a new lobby";
+const JOIN_LOBBY =  "Join a specific lobby";
+const RANDOM_LOBBY = "Join a random lobby";
+
+let manager: GameManager;
 let username: string = "";
 let players: Array<Player> = new Array<Player>();
 let ownerId: string = "";
-
 let round: number = 0;
 let playerTurn: number = -1;
-
-let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: number; isOpen: boolean } = {
+let settings= {
     maxParticipants: 10,
     maxRounds: 3,
     initialSbleuri: 10,
     isOpen: true
 }
 
-async function askAction(): Promise<void> {
-    let message = "Please press: \n1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby\n > ";
+async function askQuestion(message: string) {
     return inquirer
-            .prompt([message])
-            .then((answer)=> {Promise.resolve(parseInt(answer))})
-            .catch((error)=>{Promise.reject(error)})
+                .prompt({
+                    name: 'question_prompt',
+                    type: 'input',
+                    message: message
+                })
+                .then((answer)=> Promise.resolve(answer.question_prompt))
+                .catch((error)=>Promise.reject(error));
 }
 
-socket.on('connect', ()=>{
-    manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
-    inquirer
-        .prompt(["Hello gamer! Insert your username, please > "])
-        .then((answer)=>{
-            username = answer;
-         })
-        .then(()=>{
-            
-        })
-    /*readline.question("Hello gamer! Insert your username, please > ", async (user: string) => {
-        username = user;
-        readline.pause();
-        const action = await askAction();
-        console.log("action" + action);
+async function askChoice(choices:Array<string>) {
+    return inquirer
+                .prompt({
+                    name: 'choice_prompt',
+                    message: 'Please, choose:',
+                    type: 'rawlist',
+                    choices: choices
+                })
+                .then((answer) => Promise.resolve(answer.choice_prompt))
+                .catch((error)=> Promise.reject(error));
+}
 
+socket.on('connect', async ()=>{
+    manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
+    try {
+        username = await askQuestion("Hello gamer! Insert your username, please > ");
+        let action = await askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
         switch (action) {
-            case -1:
-                //todo
+            case NEW_LOBBY:
+                let toCreate = await askQuestion("Please, insert a lobby name > ");
+                let maxRounds = await askQuestion("How many turns you want to play at most? > ");
+                let maxPlayers = await askQuestion("How many players do you want at most? > ");
+                let initialSbleuri = await askQuestion("How many sbleuri you want to play with? > ");
+                socket.emit("create-lobby", toCreate, maxRounds, maxPlayers, initialSbleuri);
                 break;
-            case 1:
-                console.log("action" + action);
+            case JOIN_LOBBY:
+                let toJoin = await askQuestion("Please, insert a lobby name > ");
+                socket.emit("join-lobby", toJoin);
                 break;
-            case 2:
-                console.log("action" + action);
-                break;
-            case 3:
-                console.log("action" + action);
+            case RANDOM_LOBBY:
+                console.log("action: " + action);
                 break;
         }
+    } catch(error){
+        console.log(error);
+    }
+
+    socket.on("lobby-created", (lobby)=>{
+        console.log(`You created this lobby: ${lobby.name}, ${lobby.maxRounds}, ${lobby.maxParticipants}, ${lobby.initialSbleuri}`)
     });
-    */
+
+    socket.on("retry-lobby", async ()=>{
+        let toJoin = await askQuestion("Please, insert a valid lobby name > ");
+        socket.emit("join-lobby", toJoin);
+    });
     /*
-    socket.on("choose-action", (message1, message2)=>{
-        console.log(message1);
-        readline.question(message2 + "\n > ", (input: string) => {
-            if(input.match(chooseRegex) != null){
-                socket.emit("action-chosen", input);
-                readline.pause();
-            }else{
-                socket.emit("retry-action", message2);
-            }
-        });
-    });
-
-    socket.on("retry-action", (message) => {
-        console.log("Not a valid option, retry. ");
-        readline.question(message, (input: string) => {
-            if(input.match(chooseRegex) != null){
-                socket.emit("action-chosen", input);
-                readline.pause();
-            }else{
-                socket.emit("retry-action", message);
-            }
-        })
-    });
-
     socket.on("new-join", (username, playerId, room, sets, owner) => {
         if(owner == socket.id){
             manager.registerPlayer(new PlayerImpl(playerId, username, settings.initialSbleuri));
@@ -110,51 +99,6 @@ socket.on('connect', ()=>{
     socket.on("insert-lobby", () => {
         readline.question("Insert a valid lobby > ", (input: string) => {
             socket.emit("join-lobby", input);
-            readline.pause();
-        });
-    });
-
-    socket.on("retry-lobby", (lobbies: string[])=>{
-        console.log("Not a valid lobby.");
-        console.log("Lobbies: " + lobbies)
-        readline.question("Retry > ", (input: string) => {
-            socket.emit("join-lobby", input);
-            readline.pause();
-        });
-    });
-
-    socket.on("set-participants", () => {
-        settings.maxParticipants = 10;
-        readline.question("Set the max number of participants [default 10] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)) settings.maxParticipants = Number(input);
-            socket.emit("max-participants");
-            readline.pause();
-        })
-    });
-
-    socket.on("set-rounds", () => {
-        readline.question("Set the max number of rounds [default 3] > ", (input:string) => {
-            if(input.length != 0 && input.match(numberRegex)) settings.maxRounds = Number(input);
-            socket.emit("max-rounds");
-            readline.pause();
-        });
-    });
-
-    socket.on("set-sbleuri", () => {
-        readline.question("Set the initial number of sbleuri [default 10] > ", (input: string) => {
-            if(input.length != 0 && input.match(numberRegex)) settings.initialSbleuri = Number(input);
-            socket.emit("init-sbleuri");
-            readline.pause();
-        });
-    });
-
-    socket.on("set-public", () => {
-        readline.question("Is the lobby public? y(es) / n(o) [default yes] > ", (input:string) => {
-            if(input.length != 0 && input.match(boolRegex)){
-                if(input == 'y') settings.isOpen = true;
-                else if(input == 'n') settings.isOpen = false;
-            }else settings.isOpen = true;
-            socket.emit("is-public", settings);
             readline.pause();
         });
     });

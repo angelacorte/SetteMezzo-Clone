@@ -40,67 +40,45 @@ routes(app);
 
 // connectDB();
 
+function refreshActiveLobbies(): Array<string> {
+    return lobbyUtils
+                .getLobbies()
+                .filter((l) => l.getState() != LobbyState.FULL && l.getState() != LobbyState.STARTED)
+                .map((l) => l.getId());
+}
+
 io.on('connect', (socket: Socket)=>{
 
-    socket.on("set-username", (username) => {
-        socket.data.username = username;
-        io.to(socket.id).emit("choose-action", "Please press: ", "1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby"); //create new lobby, join existing or random lobby
-    });
-
-
-    socket.on("action-chosen", (message) => {
-        let activeLobbies: string[] = [];
-        lobbyUtils.getLobbies().forEach((l) => {
-            if(l.getState() != LobbyState.FULL && l.getState() != LobbyState.STARTED) activeLobbies.push(l.getId());
-        });
-        if(message == 1){ //create new lobby
-            let room = utils.getRandomCode();
-            socket.join(room);
-            socket.data.room = room;
-            io.to(room).emit("new-join",  socket.data.username, socket.id, room, settings, socket.id);
-            io.to(room).emit("set-participants");
-        }else if (message == 2){ //join a specific lobby
-            io.to(socket.id).emit("insert-lobby"); //todo check if full > isJoinable(lobbyID)
-        }else if (message == 3){ //join a random lobby
-            let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]
-            socket.join(room);
-            socket.data.room = room;
-            io.to(room).emit("new-join",  socket.data.username, socket.id, room, settings,  lobbyUtils.getLobby(room).getOwner());
+    socket.on("create-lobby", (lobby: string, maxRounds: number, maxParticipants: number, initialSbleuri: number) => {
+        const room = lobby;
+        socket.join(room);
+        socket.data.room = room;
+        let myLobby = {
+            name: lobby,
+            maxRounds: maxRounds,
+            maxParticipants: maxParticipants,
+            initialSbleuri: initialSbleuri
         }
-    });
-
-    socket.on("retry-action", (message: string) => {
-        io.to(socket.id).emit("retry-action", message);
+        //lobbyUtils.addLobby(new Lobby(lobby, socket.id, LobbyState.CREATED, true, maxParticipants, maxRounds, initialSbleuri))
+        io.to(room).emit("lobby-created", myLobby);
     })
 
-    socket.on("max-participants", () => {
-        io.to(socket.data.room).emit("set-rounds");
-    });
-
-    socket.on("max-rounds", () => {
-        io.to(socket.data.room).emit("set-sbleuri");
-    });
-
-    socket.on("init-sbleuri", () => {
-        io.to(socket.data.room).emit("set-public");
-    });
-
-    socket.on("is-public", (sets) => {
-        settings = sets;
-        lobbyUtils.addLobby(socket.data.room, socket.id, settings);
-        io.to(socket.data.room).emit("start-game");
-    });
-
     socket.on("join-lobby", (lobby) => {
-        let activeLobbies: Lobby[] = [];
-        lobbyUtils.getLobbies().forEach((l) => {
-            if(l.getState() != LobbyState.FULL && l.getState() != LobbyState.STARTED) activeLobbies.push(l);
-        });
-        if(activeLobbies.some((l:Lobby) => l.getId() === lobby)){
+        if(refreshActiveLobbies().some((l) => l === lobby)){
             socket.join(lobby);
             socket.data.room = lobby;
             io.to(lobby).emit("new-join", socket.data.username, socket.id, lobby, settings, lobbyUtils.getLobby(lobby).getOwner());
-        }else io.to(socket.id).emit("retry-lobby");
+        } else {
+            io.to(socket.id).emit("retry-lobby")
+        };
+    });
+
+    socket.on("random-lobby", (message) => {
+        let activeLobbies = refreshActiveLobbies();
+        let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]
+        socket.join(room);
+        socket.data.room = room;
+        io.to(room).emit("new-join",  socket.data.username, socket.id, room, settings,  lobbyUtils.getLobby(room).getOwner());
     });
 
     socket.on("change-lobby-state", (state: LobbyState) => {
