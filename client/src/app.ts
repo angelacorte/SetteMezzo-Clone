@@ -6,7 +6,7 @@ import {Player, PlayerImpl} from "./model/Player";
 import {Card} from "./model/card/Card";
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
-const inquirer = require("inquirer");
+import inquirer from "inquirer";
 
 let manager: GameManager;
 const numberRegex = new RegExp(/\d/);
@@ -29,16 +29,24 @@ let settings: { maxParticipants: number; maxRounds: number; initialSbleuri: numb
     isOpen: true
 }
 
-async function askAction(): Promise<number> {
+async function askAction(): Promise<void> {
     let message = "Please press: \n1 - if you want to create a new lobby \n2 - if you want to join a specific lobby \n3 - if you want to join a random lobby\n > ";
     return inquirer
             .prompt([message])
-            .then((answer: string)=> {Promise.resolve(parseInt(answer))})
-            .catch((error:string)=>{Promise.reject(error)})
+            .then((answer)=> {Promise.resolve(parseInt(answer))})
+            .catch((error)=>{Promise.reject(error)})
 }
 
 socket.on('connect', ()=>{
     manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
+    inquirer
+        .prompt(["Hello gamer! Insert your username, please > "])
+        .then((answer)=>{
+            username = answer;
+         })
+        .then(()=>{
+            
+        })
     /*readline.question("Hello gamer! Insert your username, please > ", async (user: string) => {
         username = user;
         readline.pause();
