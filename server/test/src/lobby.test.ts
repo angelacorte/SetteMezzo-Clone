@@ -1,4 +1,4 @@
-import {Lobby, LobbyState} from "../../src/models/lobby/Lobby";
+import {Lobby, LobbyState} from "../model/lobby/Lobby";
 import {getRandomCode} from "../../src/utils/utils";
 
 describe("My lobby", () => {

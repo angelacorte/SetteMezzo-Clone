@@ -1,4 +1,4 @@
-import {db} from '../models/db.index';
+import {db} from '../model/db.index';
 import {Request, Response} from "express";
 
 let Lobby = db.lobby;
