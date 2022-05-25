@@ -1,44 +1,29 @@
-import bodyParser from "body-parser";
 import {createServer} from "http";
 import {Server, Socket} from "socket.io";
 import {LobbyUtilsImpl} from "./utils/LobbyUtils";
-import {Lobby, LobbyState} from "./models/lobby/Lobby";
+import {LobbyState, Lobby} from "./model/lobby/Lobby";
 
 const express = require('express');
-const routes = require('./routes/routes');
 const utils = require("./utils/utils");
-
 const app = express();
-export const PORT = 3000;
-
-app.use(bodyParser.json()); // parse requests of content-type - application/json
-app.use(bodyParser.urlencoded({ extended: true })); // parse requests of content-type - application/x-www-form-urlencoded
-
+const PORT = 3000;
 const httpServer = createServer(app);
 const io = new Server(httpServer);
-let settings: {
-    maxParticipants: number,
-    maxRounds: number,
-    initialSbleuri: any,
-    isOpen: boolean
-} = {
+const lobbyUtils = new LobbyUtilsImpl();
+
+let settings = {
     maxParticipants: 10,
     maxRounds: 3,
     initialSbleuri: 0,
     isOpen: true
 };
-let lobbyUtils = new LobbyUtilsImpl();
+
 console.log("Server running on port: "+PORT);
 
 httpServer.listen(PORT, function () {
     console.log("Listening on port: " +PORT);
 });
 
-//const server = new SocketIoServer(io);
-
-routes(app);
-
-// connectDB();
 
 function refreshActiveLobbies(): Array<string> {
     return lobbyUtils
@@ -53,14 +38,8 @@ io.on('connect', (socket: Socket)=>{
         const room = lobby;
         socket.join(room);
         socket.data.room = room;
-        let myLobby = {
-            name: lobby,
-            maxRounds: maxRounds,
-            maxParticipants: maxParticipants,
-            initialSbleuri: initialSbleuri
-        }
-        //lobbyUtils.addLobby(new Lobby(lobby, socket.id, LobbyState.CREATED, true, maxParticipants, maxRounds, initialSbleuri))
-        io.to(room).emit("lobby-created", myLobby);
+        lobbyUtils.addLobby(new Lobby(lobby, socket.id, LobbyState.CREATED, maxParticipants, maxRounds, initialSbleuri))
+        io.to(room).emit("lobby-created", lobby);
     })
 
     socket.on("join-lobby", (lobby) => {
@@ -81,10 +60,6 @@ io.on('connect', (socket: Socket)=>{
         io.to(room).emit("new-join",  socket.data.username, socket.id, room, settings,  lobbyUtils.getLobby(room).getOwner());
     });
 
-    socket.on("change-lobby-state", (state: LobbyState) => {
-       lobbyUtils.changeState(socket.data.room, state);
-    });
-
     socket.on("start", (ownerId, players, settings) => {
         lobbyUtils.changeState(socket.data.room, LobbyState.STARTED);
         io.to(socket.data.room).emit("get-infos", ownerId, players, settings);
@@ -98,14 +73,6 @@ io.on('connect', (socket: Socket)=>{
         io.to(socket.data.room).emit("start-turn");
     })
 
-    socket.on("ask-bet", () => {
-        io.to(socket.data.room).emit("make-bet");
-    });
-
-    socket.on("ask-card", () => {
-        io.to(socket.data.room).emit("another-card");
-    });
-
     socket.on("bet-made", (socketID, bet) => {
         io.to(socket.data.room).emit("bet-made", socketID, bet);
     })
@@ -117,14 +84,6 @@ io.on('connect', (socket: Socket)=>{
     socket.on("end-game", (message) => {
         io.to(socket.data.room).emit("end-game", "Game ended, wait for results!"); //todo
     })
-
-    socket.on("card-drawn", (socketID, card) => {
-        io.to(socket.data.room).emit("card-drawn", socketID, card);
-    });
-
-    socket.on("disconnect", () => {
-        //todo check on socket's room, if empty delete it
-    });
 
 });
 

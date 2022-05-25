@@ -1,30 +1,18 @@
 import io from "socket.io-client"
 import {GameManager, GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
-import {LobbyState} from "../../server/src/models/lobby/Lobby"
-import {Player, PlayerImpl} from "./model/Player";
-import {Card} from "./model/card/Card";
 import inquirer from "inquirer";
 
 
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
+//GAME MODES
 const NEW_LOBBY = "Create a new lobby";
 const JOIN_LOBBY =  "Join a specific lobby";
 const RANDOM_LOBBY = "Join a random lobby";
 
 let manager: GameManager;
 let username: string = "";
-let players: Array<Player> = new Array<Player>();
-let ownerId: string = "";
-let round: number = 0;
-let playerTurn: number = -1;
-let settings= {
-    maxParticipants: 10,
-    maxRounds: 3,
-    initialSbleuri: 10,
-    isOpen: true
-}
 
 async function askQuestion(message: string) {
     return inquirer
@@ -74,8 +62,8 @@ socket.on('connect', async ()=>{
         console.log(error);
     }
 
-    socket.on("lobby-created", (lobby)=>{
-        console.log(`You created this lobby: ${lobby.name}, ${lobby.maxRounds}, ${lobby.maxParticipants}, ${lobby.initialSbleuri}`)
+    socket.on("lobby-created", (lobbyName: string)=>{
+        console.log(`You created this lobby: ${lobbyName}`)
     });
 
     socket.on("retry-lobby", async ()=>{
