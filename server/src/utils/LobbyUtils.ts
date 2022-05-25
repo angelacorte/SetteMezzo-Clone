@@ -1,15 +1,10 @@
-import {Lobby, LobbyState} from "../models/lobby/Lobby";
-import {SetteMezzoGameStateFactory} from "../../../client/src/model/game-state/GameStateFactory";
-import {GameManager, GameManagerImpl} from "../../../client/src/GameManager";
-import {PlayerImpl} from "../../../client/src/model/Player";
-let lobbies: Lobby[] = [];
+import {Lobby, LobbyState} from "../model/lobby/Lobby";
 
 /**
  * Lobby instantiate its params based on Client's preferences
  * keep trace of lobbies and their status
  */
 export interface LobbyUtils {
-
     /**
      * Set the lobby params chosen by the owner of the lobby
      * @param maxParticipants the max number of users in the lobby
@@ -22,10 +17,8 @@ export interface LobbyUtils {
     /**
      * add a lobby to @lobbies array
      * @param lobby
-     * @param id
-     * @param settings
      */
-    addLobby(lobby: string, id: string, settings: any): void;
+    addLobby(lobby: Lobby): void;
 
     /**
      * @returns lobby infos
@@ -46,11 +39,6 @@ export interface LobbyUtils {
     getLobbies(): Lobby[];
 
     /**
-     * Get all public lobbies
-     */
-    getPublicLobbies(): Lobby[];
-
-    /**
      * change the status of the lobby
      * @param lobbyId
      * @param state
@@ -59,29 +47,26 @@ export interface LobbyUtils {
 }
 
 export class LobbyUtilsImpl implements LobbyUtils{
+    private lobbies: Lobby[] = [];
 
-    public addLobby(lobby: string, owenerId: string, settings: any): void {
-        lobbies.push(new Lobby(lobby, owenerId, LobbyState.CREATED, settings.isOpen, settings.maxParticipants, settings.maxRounds, settings.initialSbleuri));
+    public addLobby(lobby: Lobby): void {
+        this.lobbies.push(lobby);
     }
 
     public getLobbies(): Lobby[] {
-        return lobbies;
-    }
-
-    public getPublicLobbies(): Lobby[] {
-        return lobbies.filter(l => l.isOpen());
+        return this.lobbies;
     }
 
     public removeLobby(lobby: string): void {
-        lobbies.some((l, i) => {
+        this.lobbies.some((l, i) => {
             if(l.getId() === lobby){
-                lobbies.splice(i, 1);
+                this.lobbies.splice(i, 1);
             }
         })
     }
 
     public changeState(lobbyId: string, state: LobbyState): void{
-        lobbies.some((l, i) => {
+        this.lobbies.some((l, i) => {
             if(l.getId() === lobbyId){
                 l.setState(state);
             }
@@ -89,7 +74,7 @@ export class LobbyUtilsImpl implements LobbyUtils{
     }
 
     getLobby(lobbyId: string): Lobby {
-        let lobby: Lobby = lobbies.filter((l:Lobby) => l.getId() == lobbyId)[0];
+        let lobby: Lobby = this.lobbies.filter((l:Lobby) => l.getId() == lobbyId)[0];
         if(!lobby) throw new Error("Lobby not found");
         return lobby;
     }
