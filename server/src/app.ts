@@ -28,62 +28,48 @@ httpServer.listen(PORT, function () {
 function refreshActiveLobbies(): Array<string> {
     return lobbyUtils
                 .getLobbies()
-                .filter((l) => l.getState() != LobbyState.FULL && l.getState() != LobbyState.STARTED)
+                .filter((l) => l.getState() != LobbyState.STARTED)
                 .map((l) => l.getId());
+}
+
+function joinLobby(userName: string, userId: string, ownerId: string, lobbyName: string) {
+    io.to(ownerId).emit("guest-joined", userName, userId);
+    io.to(userId).emit("lobby-joined", lobbyName, ownerId);
 }
 
 io.on('connect', (socket: Socket)=>{
 
     socket.on("create-lobby", (lobby: string, maxRounds: number, maxParticipants: number, initialSbleuri: number) => {
-        const room = lobby;
-        socket.join(room);
-        socket.data.room = room;
         lobbyUtils.addLobby(new Lobby(lobby, socket.id, LobbyState.CREATED, maxParticipants, maxRounds, initialSbleuri))
-        io.to(room).emit("lobby-created", lobby);
+        io.to(socket.id).emit("lobby-created", lobby);
     })
 
-    socket.on("join-lobby", (lobby) => {
+    socket.on("join-lobby", (lobby: string, username: string, userId: string) => {
         if(refreshActiveLobbies().some((l) => l === lobby)){
             socket.join(lobby);
-            socket.data.room = lobby;
-            io.to(lobby).emit("new-join", socket.data.username, socket.id, lobby, settings, lobbyUtils.getLobby(lobby).getOwner());
+            socket.data.lobby = lobby;
+            let ownerId = lobbyUtils.getLobby(lobby).getOwner();
+            joinLobby(username, userId, ownerId, lobby);
         } else {
-            io.to(socket.id).emit("retry-lobby")
+            io.to(userId).emit("retry-lobby");
         };
     });
 
-    socket.on("random-lobby", (message) => {
+    socket.on("join-random-lobby", (userName, userId) => {
         let activeLobbies = refreshActiveLobbies();
-        let room = activeLobbies[utils.getRandomInt(activeLobbies.length)]
-        socket.join(room);
-        socket.data.room = room;
-        io.to(room).emit("new-join",  socket.data.username, socket.id, room, settings,  lobbyUtils.getLobby(room).getOwner());
+        let lobby = activeLobbies[utils.getRandomInt(activeLobbies.length)]
+        socket.join(lobby);
+        socket.data.lobby = lobby;
+        let ownerId = lobbyUtils.getLobby(lobby).getOwner();
+        joinLobby(userName, userId, ownerId, lobby);
     });
 
-    socket.on("start", (ownerId, players, settings) => {
-        lobbyUtils.changeState(socket.data.room, LobbyState.STARTED);
-        io.to(socket.data.room).emit("get-infos", ownerId, players, settings);
+    socket.on("start-game", ()=> {
+        io.to(socket.data.lobby).emit("start-game");
     });
 
-    socket.on("start-round", () => {
-        io.to(socket.data.room).emit("start-round");
-    });
-
-    socket.on("start-turn", () => {
-        io.to(socket.data.room).emit("start-turn");
+    socket.on("update-game-state", ()=>{
+        io.to(socket.data.lobby).emit("update-game-state")
     })
-
-    socket.on("bet-made", (socketID, bet) => {
-        io.to(socket.data.room).emit("bet-made", socketID, bet);
-    })
-
-    socket.on("end-turn", () => {
-        io.to(socket.data.room).emit("start-turn");
-    })
-
-    socket.on("end-game", (message) => {
-        io.to(socket.data.room).emit("end-game", "Game ended, wait for results!"); //todo
-    })
-
 });
 

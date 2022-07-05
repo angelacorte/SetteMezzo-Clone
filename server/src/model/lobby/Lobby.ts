@@ -3,10 +3,7 @@
  */
 export enum LobbyState {
     CREATED,
-    EMPTY,
-    FULL,
-    STARTED,
-    DELETED
+    STARTED
 };
 
 /**
@@ -27,7 +24,6 @@ export class Lobby{
         this._maxParticipants = maxP;
         this._maxRounds = maxR;
         this._initialSbleuri = initialSbleuri;
-        
     }
 
     getId(): string {

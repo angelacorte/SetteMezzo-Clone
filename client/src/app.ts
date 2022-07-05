@@ -2,6 +2,7 @@ import io from "socket.io-client"
 import {GameManager, GameManagerImpl} from "./GameManager";
 import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import inquirer from "inquirer";
+import { PlayerImpl } from "./model/Player";
 
 
 const serverUrl = 'http://localhost:3000';
@@ -12,7 +13,11 @@ const JOIN_LOBBY =  "Join a specific lobby";
 const RANDOM_LOBBY = "Join a random lobby";
 
 let manager: GameManager;
-let username: string = "";
+let player: PlayerImpl;
+let ownerId: string;
+let lobbyId: string;
+let maxPlayers: number;
+let initialSbleuri: number;
 
 async function askQuestion(message: string) {
     return inquirer
@@ -37,25 +42,39 @@ async function askChoice(choices:Array<string>) {
                 .catch((error)=> Promise.reject(error));
 }
 
+function joinLobby(lobbyName: string, userName: string, userId: string) {
+    socket.emit("join-lobby", lobbyName, userName, userId);
+}
+
+function ownerStartGame() {
+    /** cose **/
+    socket.emit("start-game");
+}
+
+function playerStartGame() {
+    socket.emit("update-game-state");
+}
+
 socket.on('connect', async ()=>{
     manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
     try {
-        username = await askQuestion("Hello gamer! Insert your username, please > ");
+        let username = await askQuestion("Hello gamer! Insert your username, please > ");
+        player = new PlayerImpl(socket.id, username, 0);
         let action = await askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
         switch (action) {
             case NEW_LOBBY:
                 let toCreate = await askQuestion("Please, insert a lobby name > ");
                 let maxRounds = await askQuestion("How many turns you want to play at most? > ");
-                let maxPlayers = await askQuestion("How many players do you want at most? > ");
-                let initialSbleuri = await askQuestion("How many sbleuri you want to play with? > ");
+                maxPlayers = await askQuestion("How many players do you want at most? > ");
+                initialSbleuri = await askQuestion("How many sbleuri you want to play with? > ");
                 socket.emit("create-lobby", toCreate, maxRounds, maxPlayers, initialSbleuri);
                 break;
             case JOIN_LOBBY:
                 let toJoin = await askQuestion("Please, insert a lobby name > ");
-                socket.emit("join-lobby", toJoin);
+                joinLobby(toJoin, player.getUsername(), player.getId());
                 break;
             case RANDOM_LOBBY:
-                console.log("action: " + action);
+                socket.emit("join-random-lobby", player.getUsername(), player.getId());
                 break;
         }
     } catch(error){
@@ -63,137 +82,39 @@ socket.on('connect', async ()=>{
     }
 
     socket.on("lobby-created", (lobbyName: string)=>{
-        console.log(`You created this lobby: ${lobbyName}`)
+        console.log(`You created this lobby: ${lobbyName}`);
+        joinLobby(lobbyName, player.getUsername(), player.getId());
     });
 
     socket.on("retry-lobby", async ()=>{
         let toJoin = await askQuestion("Please, insert a valid lobby name > ");
-        socket.emit("join-lobby", toJoin);
+        joinLobby(toJoin, player.getUsername(), player.getId());
     });
-    /*
-    socket.on("new-join", (username, playerId, room, sets, owner) => {
-        if(owner == socket.id){
-            manager.registerPlayer(new PlayerImpl(playerId, username, settings.initialSbleuri));
-            if(manager.getPlayers().length == settings.maxParticipants) {
-                console.log("Lobby has reached max number of participants.");
-                socket.emit("change-lobby-state", LobbyState.FULL);
-            }
-        }else {
-            settings = sets;
+
+    socket.on("lobby-joined", (lobby: string, owner: string)=>{
+        ownerId = owner;
+        lobbyId = lobby;
+        console.log(`You joined the lobby: ${lobby}, owned by ${owner}`);
+    })
+
+    socket.on("guest-joined", (userName, userId) => {
+        if(userName != player.getUsername()){
+            console.log(`User ${userName} joined the lobby`);
         }
-        console.log(`User ${username} joined the lobby ${room}`);
+        manager.registerPlayer(new PlayerImpl(userId, userName, initialSbleuri))
+        if(manager.getPlayers().length == maxPlayers) {
+            console.log("The last player joined! The game can begin!")
+            ownerStartGame();
+        }
     });
 
-    socket.on("insert-lobby", () => {
-        readline.question("Insert a valid lobby > ", (input: string) => {
-            socket.emit("join-lobby", input);
-            readline.pause();
-        });
-    });
-
-    socket.on("start-game", () => {
-        socket.emit("change-lobby-state", LobbyState.CREATED);
-        readline.question("Press 's' when you want to start playing > \n", (input: string) => {
-            if(input.match(startRegex)){
-                ownerId = socket.id;
-                manager.getPlayers().forEach((p:Player) => {
-                    players.push(p);
-                })
-                socket.emit("change-lobby-state", LobbyState.STARTED);
-                socket.emit("start", ownerId, players, settings);
-                readline.pause();
-            }
-        });
-    });
-
-    socket.on("get-infos", (owId, pls, sets) => {
-        if(socket.id != owId) {
-            settings = sets;
-            pls.forEach((p: { id: string, username: string}) => {
-                players.push(new PlayerImpl(p.id, p.username, settings.initialSbleuri));
-                manager.registerPlayer(new PlayerImpl(p.id, p.username, settings.initialSbleuri));
-            })
-            ownerId = owId;
-        } else {
-            ownerId = socket.id;
-            socket.emit("start-round");
+    socket.on("start-game", ()=> {
+        if(player.getId() != ownerId) {
+            playerStartGame();
         }
     })
 
-    socket.on("start-round", () => {
-        round += 1;
-        playerTurn = -1;
-        if(round > settings.maxRounds){
-            socket.emit("end-game");
-        }else{
-            if(round == 1) console.log("======= STARTING =======");
-            console.log(`==== ROUND #${round} ====`);
-            if(players[0].getId() == socket.id) socket.emit("start-turn");
-        }
+    socket.on("update-game-state", ()=>{
+        socket.emit("broadcast-game-state")
     });
-
-    socket.on("start-turn", () => {
-        playerTurn += 1;
-        if(playerTurn < players.length){ //turno non finito
-            if(players[playerTurn].getId() == socket.id){
-                let card: Card = manager.drawCard(socket.id);
-                console.log("You draw " + card.getName());
-                socket.emit("card-drawn", socket.id, card);
-                socket.emit("ask-bet");
-            }else{
-                console.log(`${players[playerTurn].getUsername()} is playing`);
-            }
-        }else{ //turno finito, prossimo round
-            socket.emit("start-round");
-        }
-    });
-
-    socket.on("make-bet", () => {
-        if(players[playerTurn].getId() == socket.id) {
-            let sbleuri = players[playerTurn].getMoney();
-            if (sbleuri > 0) {
-                readline.question(`Make a bet [you have ${sbleuri} Sbleuri] > `, (input: string) => {
-                    if (input.match(numberRegex) && parseInt(input) <= sbleuri) {
-                        socket.emit("bet-made", socket.id, parseInt(input));
-                    }
-                });
-            } else {
-                console.log("Sbleuri finished, you lost!"); //todo
-            }
-        }else{
-            console.log(`${players[playerTurn].getUsername()} is making a bet`);
-        }
-    })
-
-    socket.on("another-card", () => {
-        if(players[playerTurn].getId() == socket.id){
-            readline.question(`Player ${username} do you want to draw another card? [y/n] > `, (input:string) => {
-                if(input.match(boolRegex)){
-                    if(input == 'y') {
-                        let card = manager.drawCard(socket.id);
-                        console.log('You draw ' + card.getName());
-                        readline.pause();
-                        socket.emit("card-drawn", socket.id, card);
-                    } else socket.emit("end-turn");
-                }
-            });
-        }else{
-            console.log(`${players[playerTurn].getUsername()} is playing`);
-        }
-    });
-
-    socket.on("card-drawn", (playerId: string, card: Card) => {
-        manager.getPlayerCards(playerId).push(card);
-        socket.emit("ask-card");
-    })
-
-    socket.on("bet-made", (playerId: string, bet: number) => {
-        manager.registerBet(playerId, bet);
-        socket.emit("ask-card");
-    })
-
-    socket.on("end-game", (message) => {
-        console.log(message); //todo
-    })
-    */
 });
