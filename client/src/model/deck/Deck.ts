@@ -1,90 +1,53 @@
-import { Card } from "../card/Card";
+import { Card, from, Values, Suits, valueMap } from "../card/Card";
 
-/**
- * A generic deck of cards.
- */
 export interface Deck {
-    /**
-     * Randomizes the cards in the deck.
-     */
-    shuffle(): void;
-
-    /**
-     * @returns an immutable copy of the cards in the deck.
-     */
-    getList(): Card[];
-
-    /**
-     * @returns pops the top card of the deck.
-     */
-    draw(): Card;
-
-    /**
-     * 
-     * @param card The card to add.
-     */
-    addCard(card: Card): void;
-
-    /**
-     * 
-     * @param card The card to remove.
-     */
-    removeCard(card: Card): void;
-
-    /**
-     * 
-     * @param name The unique card name.
-     * @returns The card with given name.
-     */
-    getCard(name: string): Card;
-
-    /**
-     * Checks if the deck is empty.
-     */
-    isEmpty(): boolean;
+    cards: Array<Card>
 }
 
-export class DeckImpl implements Deck {
-    private cards: Card[];
-
-    constructor(){
-        this.cards = new Array<Card>();
-    }
-    
-    shuffle() {
-        this.cards.sort((a, b) => 0.5 - Math.random());
-    }
-
-    getList(): Card[] {
-        return [...this.cards];
-    }
-
-    draw(): Card {
-        let card = this.cards.pop();
-        if(!card){
-            throw new Error('Empty deck');
-        } else {
-            return card;
+export function createDeck(): Deck {
+    const cards = new Array<Card>()
+    //add the 42 briscola cards...
+    for(let suit in Suits){
+        for(let v in Values){
+            let value = valueMap.get(v);
+            if(value){
+                cards.push(from(`${v} of ${suit}`, suit, value))
+            }
         }
     }
+    return { cards: cards }
+}
 
-    addCard(card: Card): void {
-        this.cards.push(card);
-    }
+export function emptyDeck(): Deck {
+    return {cards: new Array<Card>()}
+}
 
-    removeCard(card: Card) {
-        this.cards = this.cards.filter(c => c.getName() != card.getName());
-    }
+export function shuffle(deck: Deck): Deck {
+    return {cards: [...deck.cards]}
+}
 
-    getCard(name: string): Card {
-        let found = this.getList().filter(value =>
-            value.getName() == name)
-            .pop();
-        if(!found) throw new Error('Card not found')
-        return found
+export function draw(deck: Deck): Card {
+    let card = deck.cards.pop()
+    if(!card){
+        throw new Error('Empty deck');
+    } else {
+        return card;
     }
+}
 
-    isEmpty() {
-        return this.cards.length == 0;
-    }
+export function removeCard(deck: Deck, card: Card): Deck {
+    const cards = deck.cards.filter(c => c.name != card.name);
+    return {cards: cards}
+}
+
+export function getCardWithName(deck: Deck, name: string) {
+    let found = deck.cards.filter(value =>
+        value.name == name)
+        .pop();
+    if(!found) throw new Error('Card not found')
+    return found
+}
+
+export function isEmpty(deck: Deck) {
+    return deck.cards.length == 0
 }
