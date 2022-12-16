@@ -1,8 +1,7 @@
 import io from "socket.io-client"
-import {GameManager, GameManagerImpl} from "./GameManager";
-import {SetteMezzoGameStateFactory} from "./model/game-state/GameStateFactory";
 import inquirer from "inquirer";
-import { PlayerImpl } from "./model/Player";
+import { Player } from "./model/player/Player";
+import { GameState, newGame , addPlayer} from "./model/game-state/GameState";
 
 
 const serverUrl = 'http://localhost:3000';
@@ -12,8 +11,8 @@ const NEW_LOBBY = "Create a new lobby";
 const JOIN_LOBBY =  "Join a specific lobby";
 const RANDOM_LOBBY = "Join a random lobby";
 
-let manager: GameManager;
-let player: PlayerImpl;
+let gameState : GameState;
+let player: Player;
 let ownerId: string;
 let lobbyId: string;
 let maxPlayers: number;
@@ -56,10 +55,10 @@ function playerStartGame() {
 }
 
 socket.on('connect', async ()=>{
-    manager = new GameManagerImpl(new SetteMezzoGameStateFactory().createGameState());
+    gameState = newGame()
     try {
         let username = await askQuestion("Hello gamer! Insert your username, please > ");
-        player = new PlayerImpl(socket.id, username, 0);
+        player = { id: socket.id, name: username, moneyLeft: 0};
         let action = await askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
         switch (action) {
             case NEW_LOBBY:
@@ -71,10 +70,10 @@ socket.on('connect', async ()=>{
                 break;
             case JOIN_LOBBY:
                 let toJoin = await askQuestion("Please, insert a lobby name > ");
-                joinLobby(toJoin, player.getUsername(), player.getId());
+                joinLobby(toJoin, player.name, player.id);
                 break;
             case RANDOM_LOBBY:
-                socket.emit("join-random-lobby", player.getUsername(), player.getId());
+                socket.emit("join-random-lobby", player.name, player.id);
                 break;
         }
     } catch(error){
@@ -83,12 +82,12 @@ socket.on('connect', async ()=>{
 
     socket.on("lobby-created", (lobbyName: string)=>{
         console.log(`You created this lobby: ${lobbyName}`);
-        joinLobby(lobbyName, player.getUsername(), player.getId());
+        joinLobby(lobbyName, player.name, player.id);
     });
 
     socket.on("retry-lobby", async ()=>{
         let toJoin = await askQuestion("Please, insert a valid lobby name > ");
-        joinLobby(toJoin, player.getUsername(), player.getId());
+        joinLobby(toJoin, player.name, player.id);
     });
 
     socket.on("lobby-joined", (lobby: string, owner: string)=>{
@@ -98,18 +97,18 @@ socket.on('connect', async ()=>{
     })
 
     socket.on("guest-joined", (userName, userId) => {
-        if(userName != player.getUsername()){
+        if(userName != player.name){
             console.log(`User ${userName} joined the lobby`);
         }
-        manager.registerPlayer(new PlayerImpl(userId, userName, initialSbleuri))
-        if(manager.getPlayers().length == maxPlayers) {
+        gameState = addPlayer(gameState, { id: userId, name: userName, moneyLeft: initialSbleuri })
+        if(gameState.players.length == maxPlayers) {
             console.log("The last player joined! The game can begin!")
             ownerStartGame();
         }
     });
 
     socket.on("start-game", ()=> {
-        if(player.getId() != ownerId) {
+        if(player.id != ownerId) {
             playerStartGame();
         }
     })
