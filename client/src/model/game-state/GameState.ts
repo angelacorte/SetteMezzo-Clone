@@ -1,60 +1,31 @@
 import { Card } from "../card/Card";
-import { Deck } from "../deck/Deck";
-import { Player } from "../Player";
+import { createSetteMezzoDeck, Deck } from "../deck/Deck";
+import { Player } from "../player/Player";
 
-/**
- * Represents the state of the game, cards in play, turn order, players playing and their money.
- *
- */
- export interface GameState {
-    /**
-     * @returns The deck used to play.
-     */
-    getDeck(): Deck;
+export interface GameState {
+    readonly deck: Deck
 
-    /**
-     * @returns A map from player ids to players.
-     */
-    getPlayers(): Array<Player>
+    readonly players: Array<Player>
+}
 
-    /**
-     * @returns The cards each player got in every turn.
-     */
-    getPlayerCards(): Map<string, Array<Card>>
+export function createGameState(deck: Deck, players: Array<Player>): GameState {
+    return { deck: deck, players: players}
+}
 
-    /**
-     * @returns The bets of all players.
-     */
-    getBets(): Map<string, Array<number>>;
- }
+export function newGame(): GameState {
+    return createGameState(new Array<Card>(), new Array<Player>())
+}
 
-export class GameStateImpl implements GameState {
-    private deck: Deck;
-    private players: Array<Player>;
-    private playerCards: Map<string, Array<Card>>;
-    private bets: Map<string, Array<number>>;
+export function newSetteMezzoGame(): GameState {
+    return updateDeck(newGame(), createSetteMezzoDeck())
+}
 
-    constructor(deck: Deck, players: Array<Player>, bets: Map<string, Array<number>>, playerCards: Map<string, Card[]>){
-        this.deck = deck;
-        this.players = players;
-        this.bets = bets;
-        this.playerCards = playerCards;
-    }
+export function updateDeck(gameState: GameState, deck: Deck): GameState {
+    return createGameState(deck, gameState.players)
+}
 
-    getDeck(): Deck {
-        return this.deck;
-    }
-
-    getPlayers(): Array<Player> {
-        return this.players;
-    }
-
-    getPlayerCards(): Map<string, Array<Card>> {
-        return this.playerCards;
-    }
-
-    getBets(): Map<string, Array<number>> {
-        return this.bets;
-    }
-    
+export function addPlayer(state: GameState, player: Player): GameState {
+    const newPlayers = state.players
+    newPlayers.push(player)
+    return createGameState(state.deck, newPlayers)
 }
