@@ -1,6 +1,6 @@
 import io from "socket.io-client"
 import inquirer from "inquirer";
-import { Player } from "./model/player/Player";
+import { newPlayer, Player } from "./model/player/Player";
 import { GameState, newGame , addPlayer} from "./model/game-state/GameState";
 
 
@@ -58,7 +58,7 @@ socket.on('connect', async ()=>{
     gameState = newGame()
     try {
         let username = await askQuestion("Hello gamer! Insert your username, please > ");
-        player = { id: socket.id, name: username, moneyLeft: 0};
+        player = newPlayer(socket.id, username, initialSbleuri);
         let action = await askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
         switch (action) {
             case NEW_LOBBY:
@@ -100,7 +100,7 @@ socket.on('connect', async ()=>{
         if(userName != player.name){
             console.log(`User ${userName} joined the lobby`);
         }
-        gameState = addPlayer(gameState, { id: userId, name: userName, moneyLeft: initialSbleuri })
+        gameState = addPlayer(gameState, newPlayer(userId, userName, initialSbleuri))
         if(gameState.players.length == maxPlayers) {
             console.log("The last player joined! The game can begin!")
             ownerStartGame();
