@@ -1,6 +1,7 @@
 import { createSetteMezzoDeck, Deck, emptyDeck, getCardWithName, isEmpty } from "../../src/model/deck/Deck"
 
 describe('My deck', ()=>{
+
     const SETTE_MEZZO_DECK_SIZE = 40
     let deck: Deck
 
@@ -20,5 +21,6 @@ describe('My deck', ()=>{
     test('Get card', ()=>{
         deck = createSetteMezzoDeck()
         expect(getCardWithName(deck, "KING of CLUBS")).not.toThrowError
+        expect(()=> getCardWithName(deck, "KING of CINTRA")).toThrowError('Card not found')
     })
 })

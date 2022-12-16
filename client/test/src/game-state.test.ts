@@ -4,6 +4,7 @@ import { Suits, Values } from "../../src/model/card/Card"
 
 
 describe('Game State tests',() => {
+    
     let gameState: GameState
     const myPlayer = newPlayer("0", "Pippo", 0)
 
