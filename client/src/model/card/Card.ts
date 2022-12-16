@@ -1,12 +1,6 @@
-
 export interface Card  {
-    name: string
-    suit: string
-    value: number
-}
-
-export function from(name: string, suit: string, value: number): Card {
-    return {name: name, suit: suit, value: value}
+    readonly suit: string
+    readonly value: string
 }
 
 export enum Suits {
@@ -17,19 +11,19 @@ export enum Suits {
 }
 
 export enum Values {
-    ACE = 1,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    JACK = 0.5,
-    KNIGHT = 0.5,
-    KING = 0.5
+    ACE = "ACE",
+    TWO = "TWO",
+    THREE = "THREE",
+    FOUR = "FOUR",
+    FIVE = "FIVE",
+    SIX = "SIX",
+    SEVEN = "SEVEN",
+    JACK = "JACK",
+    KNIGHT = "KNIGHT",
+    KING = "KING"
 }
 
-export const valueMap: Map<string, number> = new Map([
+const VALUE_MAP: Map<string, Number> = new Map([
     ["ACE", 1],
     ["TWO", 2],
     ["THREE", 3],
@@ -41,3 +35,20 @@ export const valueMap: Map<string, number> = new Map([
     ["KNIGHT", 0.5],
     ["KING", 0.5],
 ])
+
+export function from(suit: string, value: string): Card {
+    return {suit: suit, value: value}
+}
+
+export function nameOf(card: Card): string {
+    return `${card.value} of ${card.suit}`
+}
+
+export function pointValueOf(card: Card): Number {
+    let value = VALUE_MAP.get(card.value)
+    if(value){
+        return value
+    } else {
+        throw new Error('Value not valid')
+    }
+}
