@@ -1,7 +1,7 @@
 import io from "socket.io-client"
 import { newPlayer, Player } from "./model/player/Player";
 import { GameState, addPlayer, newSetteMezzoGame} from "./model/game-state/GameState";
-import { askChoice, askQuestion } from "./controller/stio";
+import * as stio from "./controller/stio";
 
 
 const serverUrl = 'http://localhost:3000';
@@ -34,19 +34,19 @@ function playerStartGame() {
 socket.on('connect', async ()=>{
     gameState = newSetteMezzoGame()
     try {
-        let username = await askQuestion("Hello gamer! Insert your username, please > ");
+        let username = await stio.askQuestion("Hello gamer! Insert your username, please > ");
         player = newPlayer(socket.id, username, initialSbleuri);
-        let action = await askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
+        let action = await stio.askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
         switch (action) {
             case NEW_LOBBY:
-                let toCreate = await askQuestion("Please, insert a lobby name > ");
-                let maxRounds = await askQuestion("How many turns you want to play at most? > ");
-                maxPlayers = await askQuestion("How many players do you want at most? > ");
-                initialSbleuri = await askQuestion("How many sbleuri you want to play with? > ");
+                let toCreate = await stio.askQuestion("Please, insert a lobby name > ");
+                let maxRounds = await stio.askQuestion("How many turns you want to play at most? > ");
+                maxPlayers = await stio.askQuestion("How many players do you want at most? > ");
+                initialSbleuri = await stio.askQuestion("How many sbleuri you want to play with? > ");
                 socket.emit("create-lobby", toCreate, maxRounds, maxPlayers, initialSbleuri);
                 break;
             case JOIN_LOBBY:
-                let toJoin = await askQuestion("Please, insert a lobby name > ");
+                let toJoin = await stio.askQuestion("Please, insert a lobby name > ");
                 joinLobby(toJoin, player.name, player.id);
                 break;
             case RANDOM_LOBBY:
@@ -63,7 +63,7 @@ socket.on('connect', async ()=>{
     });
 
     socket.on("retry-lobby", async ()=>{
-        let toJoin = await askQuestion("Please, insert a valid lobby name > ");
+        let toJoin = await stio.askQuestion("Please, insert a valid lobby name > ");
         joinLobby(toJoin, player.name, player.id);
     });
 
