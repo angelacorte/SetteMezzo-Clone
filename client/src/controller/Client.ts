@@ -21,4 +21,8 @@ export class Client {
         this.socket.emit(event, data)
         return this
     }
+
+    public id(): string {
+        return this.socket.id
+    }
 }

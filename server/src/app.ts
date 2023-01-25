@@ -11,13 +11,6 @@ const httpServer = createServer(app);
 const io = new Server(httpServer);
 const lobbyUtils = new LobbyUtilsImpl();
 
-let settings = {
-    maxParticipants: 10,
-    maxRounds: 3,
-    initialSbleuri: 0,
-    isOpen: true
-};
-
 console.log("Server running on port: "+PORT);
 
 httpServer.listen(PORT, function () {
@@ -33,7 +26,7 @@ function refreshActiveLobbies(): Array<string> {
 }
 
 function joinLobby(userName: string, userId: string, ownerId: string, lobbyName: string) {
-    io.to(ownerId).emit("guest-joined", userName, userId);
+    io.to(ownerId).emit("guest-joined");
     io.to(userId).emit("lobby-joined", lobbyName, ownerId);
 }
 

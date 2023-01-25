@@ -1,29 +1,17 @@
-import io from "socket.io-client"
-import { newPlayer, Player } from "./model/player/Player";
-import { GameState, addPlayer, newSetteMezzoGame} from "./model/game-state/GameState";
-import * as stio from "./controller/stio";
+import { Client } from "./controller/Client";
+import { GuestJoined, StartMenu } from "./controller/StartMenu";
 
+const client = new Client()
 
-const serverUrl = 'http://localhost:3000';
-const socket = io(serverUrl);
-//GAME MODES
-const NEW_LOBBY = "Create a new lobby";
-const JOIN_LOBBY =  "Join a specific lobby";
-const RANDOM_LOBBY = "Join a random lobby";
+StartMenu(client)
+GuestJoined(client)
 
-let gameState : GameState;
-let player: Player;
-let ownerId: string;
-let lobbyId: string;
-let maxPlayers: number;
-let initialSbleuri: number;
-
+/*
 function joinLobby(lobbyName: string, userName: string, userId: string) {
     socket.emit("join-lobby", lobbyName, userName, userId);
 }
 
 function ownerStartGame() {
-    /** cose **/
     socket.emit("start-game");
 }
 
@@ -90,3 +78,4 @@ socket.on('connect', async ()=>{
         }
     })
 });
+*/
