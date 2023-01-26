@@ -1,8 +1,8 @@
 import {createServer} from "http";
 import {Server, Socket} from "socket.io";
 import {LobbyUtilsImpl} from "./utils/LobbyUtils";
-import {LobbyState, Lobby} from "./model/lobby/Lobby";
-import {LobbyCreation, LobbyJoining} from "./model/events/ServerData";
+import {Lobby, LobbyState} from "./model/lobby/Lobby";
+import {GameState, LobbyCreation, LobbyJoining, PlayerData, VictoriesStatus} from "./model/events/ServerData";
 
 const express = require('express');
 const utils = require("./utils/utils");
@@ -17,7 +17,6 @@ console.log("Server running on port: "+PORT);
 httpServer.listen(PORT, function () {
     console.log("Listening on port: " +PORT);
 });
-
 
 function refreshActiveLobbies(): Array<string> {
     return lobbyUtils
@@ -47,10 +46,10 @@ io.on('connect', (socket: Socket)=>{
             joinLobby(lobbyJoining);
         } else {
             io.to(lobbyJoining.userId).emit("retry-lobby");
-        };
+        }
     });
 
-    socket.on("join-random-lobby", (data) => {
+    socket.on("join-random-lobby", (data: PlayerData) => {
         let lobbyJoining: LobbyJoining = {
             lobbyName: "", ownerId: "", userId: data.playerId, username: data.playerName
         }
@@ -62,12 +61,19 @@ io.on('connect', (socket: Socket)=>{
         joinLobby(lobbyJoining);
     });
 
-    socket.on("start-game", ()=> {
-        io.to(socket.data.lobby).emit("start-game");
+    socket.on("start-game", (data: GameState)=> {
+        lobbyUtils.changeState(socket.data.lobby, LobbyState.STARTED)
+        data.currentPlayer = 0
+        data.currentRound = 1
+        io.to(socket.data.lobby).emit("start-game", data);
     });
 
-    socket.on("update-game-state", ()=>{
-        io.to(socket.data.lobby).emit("update-game-state")
+    socket.on("next", (data: GameState) => {
+        io.to(socket.data.lobby).emit("round", data);
+    })
+
+    socket.on("end-game", (victories: VictoriesStatus) => {
+        io.to(socket.data.lobby).emit("announce-winner", victories);
     })
 });
 
