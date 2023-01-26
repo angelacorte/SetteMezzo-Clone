@@ -1,7 +1,7 @@
 export interface LobbyCreation {
     lobbyName: string,
     maxRounds: number,
-    maxParticipants: number
+    maxPlayers: number
 }
 
 export interface LobbyJoining {

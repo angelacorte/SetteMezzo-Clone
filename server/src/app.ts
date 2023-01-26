@@ -27,14 +27,14 @@ function refreshActiveLobbies(): Array<string> {
 
 function joinLobby(lobbyJoining: LobbyJoining) {
     console.log(lobbyJoining.ownerId + ' ' + lobbyJoining.username)
-    io.to(lobbyJoining.ownerId).emit("guest-joined", lobbyJoining.userId);
-    io.to(lobbyJoining.userId).emit("lobby-joined", lobbyJoining);
+    io.to(lobbyJoining.ownerId).emit("guest-joined", lobbyJoining.userId, lobbyJoining.username);
+    io.to(lobbyJoining.userId).emit("lobby-joined", lobbyJoining.lobbyName, lobbyJoining.ownerId);
 }
 
 io.on('connect', (socket: Socket)=>{
 
     socket.on("create-lobby", (lobbyCreation: LobbyCreation) => {
-        lobbyUtils.addLobby(new Lobby(lobbyCreation.lobbyName, socket.id, LobbyState.CREATED, lobbyCreation.maxParticipants, lobbyCreation.maxRounds))
+        lobbyUtils.addLobby(new Lobby(lobbyCreation.lobbyName, socket.id, LobbyState.CREATED, lobbyCreation.maxPlayers, lobbyCreation.maxRounds))
         io.to(socket.id).emit("lobby-created", lobbyCreation.lobbyName);
     })
 
@@ -62,10 +62,11 @@ io.on('connect', (socket: Socket)=>{
     });
 
     socket.on("start-game", (data: GameState)=> {
+        console.log("data", data)
         lobbyUtils.changeState(socket.data.lobby, LobbyState.STARTED)
         data.currentPlayer = 0
         data.currentRound = 1
-        io.to(socket.data.lobby).emit("start-game", data);
+        io.to(socket.data.lobby).emit("round", data);
     });
 
     socket.on("next", (data: GameState) => {
