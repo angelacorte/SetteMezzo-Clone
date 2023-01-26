@@ -22,22 +22,16 @@ import { Player } from "../Player";
      */
     getPlayerCards(): Map<string, Array<Card>>
 
-    /**
-     * @returns The bets of all players.
-     */
-    getBets(): Map<string, Array<number>>;
  }
 
 export class GameStateImpl implements GameState {
     private deck: Deck;
     private players: Array<Player>;
     private playerCards: Map<string, Array<Card>>;
-    private bets: Map<string, Array<number>>;
 
-    constructor(deck: Deck, players: Array<Player>, bets: Map<string, Array<number>>, playerCards: Map<string, Card[]>){
+    constructor(deck: Deck, players: Array<Player>, playerCards: Map<string, Card[]>){
         this.deck = deck;
         this.players = players;
-        this.bets = bets;
         this.playerCards = playerCards;
     }
 
@@ -52,9 +46,4 @@ export class GameStateImpl implements GameState {
     getPlayerCards(): Map<string, Array<Card>> {
         return this.playerCards;
     }
-
-    getBets(): Map<string, Array<number>> {
-        return this.bets;
-    }
-    
 }
