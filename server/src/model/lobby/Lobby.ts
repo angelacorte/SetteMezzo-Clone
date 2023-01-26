@@ -16,7 +16,7 @@ export class Lobby{
     private readonly _maxRounds: number;
     private _state: LobbyState;
 
-    constructor(id:string, owner: string, state: LobbyState, maxP: number, maxR: number, initialSbleuri: number) {
+    constructor(id:string, owner: string, state: LobbyState, maxP: number, maxR: number) {
         this._id = id;
         this._owner = owner;
         this._state = state
