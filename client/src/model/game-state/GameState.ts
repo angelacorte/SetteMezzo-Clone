@@ -1,10 +1,9 @@
 import { Card } from "../card/Card";
-import { createSetteMezzoDeck, Deck } from "../deck/Deck";
+import {createSetteMezzoDeck, Deck, shuffle} from "../deck/Deck";
 import { Player } from "../player/Player";
 
 export interface GameState {
     readonly deck: Deck
-
     readonly players: Array<Player>
 }
 
@@ -17,7 +16,7 @@ export function newGame(): GameState {
 }
 
 export function newSetteMezzoGame(): GameState {
-    return updateDeck(newGame(), createSetteMezzoDeck())
+    return updateDeck(newGame(), shuffle(createSetteMezzoDeck()))
 }
 
 export function updateDeck(gameState: GameState, deck: Deck): GameState {
