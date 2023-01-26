@@ -11,13 +11,6 @@ const httpServer = createServer(app);
 const io = new Server(httpServer);
 const lobbyUtils = new LobbyUtilsImpl();
 
-let settings = {
-    maxParticipants: 10,
-    maxRounds: 3,
-    initialSbleuri: 0,
-    isOpen: true
-};
-
 console.log("Server running on port: "+PORT);
 
 httpServer.listen(PORT, function () {
@@ -33,7 +26,8 @@ function refreshActiveLobbies(): Array<string> {
 }
 
 function joinLobby(userName: string, userId: string, ownerId: string, lobbyName: string) {
-    io.to(ownerId).emit("guest-joined", userName, userId);
+    console.log(ownerId + ' ' + userId)
+    io.to(ownerId).emit("guest-joined", userId);
     io.to(userId).emit("lobby-joined", lobbyName, ownerId);
 }
 
@@ -55,7 +49,9 @@ io.on('connect', (socket: Socket)=>{
         };
     });
 
-    socket.on("join-random-lobby", (userName, userId) => {
+    socket.on("join-random-lobby", (data) => {
+        const userName = data.playerName
+        const userId = data.playerId
         let activeLobbies = refreshActiveLobbies();
         let lobby = activeLobbies[utils.getRandomInt(activeLobbies.length)]
         socket.join(lobby);
