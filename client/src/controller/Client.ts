@@ -1,23 +1,19 @@
-import { io, Socket } from 'socket.io-client'
-import { SERVER_URL } from '../global'
-import { Observable } from 'rxjs'
+import { fromEvent, Observable } from "rxjs";
+import { io, Socket } from "socket.io-client";
+import { SERVER_URL } from "../global";
 
 export class Client {
     private socket: Socket
 
-    constructor() {
+    constructor(){
         this.socket = io(SERVER_URL)
     }
 
     public eventObservable(event: string): Observable<any> {
-        return new Observable((subscribe)=>{
-            this.socket.on(event, (data)=>{
-              subscribe.next(data)
-            })
-        })
+        return fromEvent(this.socket, event)
     }
 
-    public sendEvent(event: string, data:any): Client {
+    public sendEvent(event: string, data: any): Client {
         this.socket.emit(event, data)
         return this
     }
