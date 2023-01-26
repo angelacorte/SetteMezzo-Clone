@@ -18,17 +18,17 @@ function StartMenu(client: Client){
                 break;
             case JOIN_LOBBY:
                 let toJoin = await stio.askQuestion("Please, insert a lobby name > ");
-                client.sendEvent('join-lobby', toJoin, player.name, player.id);
+                client.sendEvent('join-lobby', {lobbyName: toJoin, playerName: player.name, playerId: player.id});
                 break;
             case RANDOM_LOBBY:
-                client.sendEvent("join-random-lobby", player.name, player.id);
+                client.sendEvent("join-random-lobby", {playerName: player.name, playerId: player.id});
                 break;
         }
     })
 }
 
 function GuestJoined(client: Client) {
-    client.eventObservable('guest-joined').subscribe(() => console.log("mia mamma"))
+    client.eventObservable('guest-joined').subscribe((user) => console.log(`${user} joined`))
 }
 
 async function lobbyCreation(): Promise<LobbySettings> {
