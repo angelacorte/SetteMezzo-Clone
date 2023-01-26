@@ -26,8 +26,8 @@ function refreshActiveLobbies(): Array<string> {
 }
 
 function joinLobby(lobbyJoining: LobbyJoining) {
-    io.to(lobbyJoining.ownerId).emit("guest-joined", lobbyJoining.userId);
-    io.to(lobbyJoining.userId).emit("lobby-joined", lobbyJoining.lobbyName, lobbyJoining.ownerId);
+    io.to(lobbyJoining.ownerId).emit("guest-joined", {userId: lobbyJoining.userId, userName: lobbyJoining.username});
+    io.to(lobbyJoining.userId).emit("lobby-joined", {userId: lobbyJoining.userId, userName: lobbyJoining.username});
 }
 
 io.on('connect', (socket: Socket)=>{
