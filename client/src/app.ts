@@ -1,10 +1,9 @@
 import { Client } from "./controller/Client";
-import { GuestJoined, StartMenu } from "./controller/StartMenu";
+import { StartMenu } from "./controller/StartMenu";
 
 const client = new Client()
 
 StartMenu(client)
-GuestJoined(client)
 
 /*
 function joinLobby(lobbyName: string, userName: string, userId: string) {

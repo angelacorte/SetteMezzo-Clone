@@ -26,9 +26,8 @@ function refreshActiveLobbies(): Array<string> {
 }
 
 function joinLobby(lobbyJoining: LobbyJoining) {
-    console.log(lobbyJoining.ownerId + ' ' + lobbyJoining.username)
     io.to(lobbyJoining.ownerId).emit("guest-joined", lobbyJoining.userId);
-    io.to(lobbyJoining.userId).emit("lobby-joined", lobbyJoining);
+    io.to(lobbyJoining.userId).emit("lobby-joined", lobbyJoining.lobbyName, lobbyJoining.ownerId);
 }
 
 io.on('connect', (socket: Socket)=>{
