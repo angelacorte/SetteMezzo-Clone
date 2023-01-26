@@ -14,7 +14,6 @@ export class Lobby{
     private readonly _owner: string;
     private readonly _maxParticipants: number;
     private readonly _maxRounds: number;
-    private readonly _initialSbleuri: number;
     private _state: LobbyState;
 
     constructor(id:string, owner: string, state: LobbyState, maxP: number, maxR: number, initialSbleuri: number) {
@@ -23,7 +22,6 @@ export class Lobby{
         this._state = state
         this._maxParticipants = maxP;
         this._maxRounds = maxR;
-        this._initialSbleuri = initialSbleuri;
     }
 
     getId(): string {
@@ -48,10 +46,6 @@ export class Lobby{
 
     getMaxRounds(): number {
         return this._maxRounds;
-    }
-
-    getInitialSbleuri(): number {
-        return this._initialSbleuri;
     }
 }
 
