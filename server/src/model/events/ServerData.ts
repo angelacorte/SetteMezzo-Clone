@@ -10,3 +10,19 @@ export interface LobbyJoining {
     lobbyName: string,
     ownerId: string
 }
+
+export interface GameState {
+    deck: Array<any>, //todo change any
+    players: Array<any>, //playerId?
+    currentPlayer?: number,
+    currentRound?: number
+}
+
+export interface PlayerData {
+    playerName: string,
+    playerId: string
+}
+
+export interface VictoriesStatus {
+    victories: Map<PlayerData, number>
+}
