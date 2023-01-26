@@ -17,7 +17,7 @@ export class Client {
         })
     }
 
-    public sendEvent(event: string, ...data: any[]): Client {
+    public sendEvent(event: string, data:any): Client {
         this.socket.emit(event, data)
         return this
     }
