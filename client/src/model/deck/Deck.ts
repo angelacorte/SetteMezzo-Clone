@@ -27,3 +27,8 @@ export function getCardWithName(deck: Deck, name: string): Card {
 export function isEmpty(deck: Deck): Boolean {
     return deck.length == 0
 }
+
+export function shuffle(deck: Deck): Deck {
+    return deck.sort((a, b) => 0.5 - Math.random());
+}
+

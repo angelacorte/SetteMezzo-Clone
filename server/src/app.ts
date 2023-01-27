@@ -26,8 +26,8 @@ function refreshActiveLobbies(): Array<string> {
 }
 
 function joinLobby(lobbyJoining: LobbyJoining) {
-    io.to(lobbyJoining.ownerId).emit("guest-joined", {userId: lobbyJoining.userId, userName: lobbyJoining.username});
-    io.to(lobbyJoining.userId).emit("lobby-joined", {userId: lobbyJoining.userId, userName: lobbyJoining.username});
+    io.to(lobbyJoining.ownerId).emit("guest-joined", lobbyJoining.username, lobbyJoining.userId);
+    io.to(lobbyJoining.userId).emit("lobby-joined", lobbyJoining.lobbyName, lobbyJoining.ownerId);
 }
 
 io.on('connect', (socket: Socket)=>{
@@ -60,15 +60,16 @@ io.on('connect', (socket: Socket)=>{
         joinLobby(lobbyJoining);
     });
 
-    socket.on("start-game", (data: GameState)=> {
+    socket.on("start-game", (gs: GameState)=> {
         lobbyUtils.changeState(socket.data.lobby, LobbyState.STARTED)
-        data.currentPlayer = 0
-        data.currentRound = 1
-        io.to(socket.data.lobby).emit("start-game", data);
+        let lobbyInfo = lobbyUtils.getLobby(socket.data.lobby)
+
+        //currentPlayer = 0 / currentRound = 1
+        io.to(socket.data.lobby).emit("round", gs, 0, 1, lobbyInfo.getMaxRounds());
     });
 
-    socket.on("next", (data: GameState) => {
-        io.to(socket.data.lobby).emit("round", data);
+    socket.on("next", (gs: GameState, currentPlayer, currentRound, maxRounds) => {
+        io.to(socket.data.lobby).emit("round", gs, currentPlayer, currentRound, maxRounds);
     })
 
     socket.on("end-game", (victories: VictoriesStatus) => {

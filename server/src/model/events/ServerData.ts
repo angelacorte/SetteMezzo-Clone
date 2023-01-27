@@ -5,17 +5,15 @@ export interface LobbyCreation {
 }
 
 export interface LobbyJoining {
-    userId: string,
-    username: string,
     lobbyName: string,
+    username: string,
+    userId: string,
     ownerId: string
 }
 
 export interface GameState {
     deck: Array<any>, //todo change any
     players: Array<any>, //playerId?
-    currentPlayer?: number,
-    currentRound?: number
 }
 
 export interface PlayerData {
