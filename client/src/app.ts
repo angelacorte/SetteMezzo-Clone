@@ -1,14 +1,7 @@
-import io from "socket.io-client"
-import {giveCard, newPlayer, Player} from "./model/player/Player";
-import {GameState, addPlayer, newSetteMezzoGame, updateDeck} from "./model/game-state/GameState";
-import * as stio from "./controller/stio";
-import {JOIN_LOBBY, NEW_LOBBY, RANDOM_LOBBY, MAX_VALUE} from "./global";
-import {Card, pointValueOf} from "./model/card/Card";
 
-//const client = new Client()
+require('./controller/StartMenu')
 
-//StartMenu(client)
-//GameManager(client)
+/*
 const serverUrl = 'http://localhost:3000';
 const socket = io(serverUrl);
 
@@ -132,3 +125,4 @@ socket.on('connect', async ()=>{
         console.log("Game ended. \n THE WINNER IS ...")
     })
 });
+*/

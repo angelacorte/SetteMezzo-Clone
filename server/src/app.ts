@@ -26,11 +26,13 @@ function refreshActiveLobbies(): Array<string> {
 }
 
 function joinLobby(lobbyJoining: LobbyJoining) {
-    io.to(lobbyJoining.ownerId).emit("guest-joined", lobbyJoining.username, lobbyJoining.userId);
-    io.to(lobbyJoining.userId).emit("lobby-joined", lobbyJoining.lobbyName, lobbyJoining.ownerId);
+    const toSend = {userName: lobbyJoining.username, userId: lobbyJoining.userId}
+    io.to(lobbyJoining.ownerId).emit("guest-joined", toSend);
+    io.to(lobbyJoining.userId).emit("lobby-joined", toSend);
 }
 
 io.on('connect', (socket: Socket)=>{
+    console.log(`socket ${socket.id} connected`)
 
     socket.on("create-lobby", (lobbyCreation: LobbyCreation) => {
         lobbyUtils.addLobby(new Lobby(lobbyCreation.lobbyName, socket.id, LobbyState.CREATED, lobbyCreation.maxParticipants, lobbyCreation.maxRounds))

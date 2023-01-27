@@ -1,30 +1,69 @@
 import { JOIN_LOBBY, NEW_LOBBY, RANDOM_LOBBY } from "../global";
-import { newPlayer, Player } from "../model/player/Player";
 import { Client } from "./Client"
 import * as stio from './stio'
 import {LobbySettings, createLobby} from '../model/lobby/Lobby'
+import { from, map, merge, of, switchMap } from "rxjs";
+import { newPlayer } from "../model/player/Player";
 
-let player: Player
+const client = new Client()
 
-export function StartMenu(client: Client){
-    client.eventObservable('connect').subscribe(async ()=>{
-        const username = await stio.askQuestion("Hello gamer! Insert your username, please > ");
-        player = newPlayer(client.id(), username);
-        const action = await stio.askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
-        switch (action) {
-            case NEW_LOBBY:
-                const lobbySettings = await lobbyCreation()
-                client.sendEvent('create-lobby', lobbySettings)
-                break;
-            case JOIN_LOBBY:
-                let toJoin = await stio.askQuestion("Please, insert a lobby name > ");
-                client.sendEvent('join-lobby', {lobbyName: toJoin, playerName: player.name, playerId: player.id});
-                break;
-            case RANDOM_LOBBY:
-                client.sendEvent("join-random-lobby", {playerName: player.name, playerId: player.id});
-                break;
-        }
-    })
+const connection = client.eventObservable('connect')
+
+const player = connection
+    .pipe(
+        switchMap(() =>
+            from(getUsername())
+                .pipe(
+                    switchMap(name =>
+                        of(newPlayer(client.id(), name))
+                    )
+                )
+        )
+    )
+
+const action = player
+    .pipe(
+        switchMap( player =>
+            from(stio.askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]))
+                .pipe(
+                    map(choice => ({player, choice}))
+                )
+        )
+    )
+
+action.subscribe(async ({player, choice}) => {
+    switch (choice) {
+        case NEW_LOBBY:
+            const lobbySettings = await lobbyCreation()
+            client.sendEvent('create-lobby', lobbySettings)
+            break;
+        case JOIN_LOBBY:
+            let toJoin = await stio.askQuestion("Please, insert a lobby name > ");
+            client.sendEvent('join-lobby', {lobbyName: toJoin, username: player.name, userId: player.id});
+            break;
+        case RANDOM_LOBBY:
+            client.sendEvent("join-random-lobby", {username: player.name, userId: player.id});
+            break;
+    }
+})
+
+const lobby = player
+    .pipe(
+        switchMap(player => 
+            client.eventObservable('lobby-created')
+                .pipe(
+                    map(lobbyName => ({player, lobbyName}))
+                )
+            )
+    )
+  
+lobby.subscribe(({player, lobbyName}) => 
+    client.sendEvent('join-lobby', {lobbyName: lobbyName, username: player.name, userId: player.id}))
+
+const guest = client.eventObservable('guest-joined').subscribe(data => console.log(data))
+
+async function getUsername() {
+    return stio.askQuestion('Hello gamer, please insert your username >')
 }
 
 async function lobbyCreation(): Promise<LobbySettings> {
@@ -38,3 +77,4 @@ async function lobbyCreation(): Promise<LobbySettings> {
         return Promise.reject(err)
     } 
 }
+

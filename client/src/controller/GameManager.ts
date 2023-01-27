@@ -8,12 +8,16 @@ let gameState: GameState
 async function GameManager(client: Client) {
     gameState = newSetteMezzoGame()
     const guestJoined = client.eventObservable('guest-joined')
-    guestJoined.subscribe((userData) => handleGuestJoined(userData))
+    guestJoined.subscribe((userData) => { 
+        console.log(userData)
+        handleGuestJoined(userData)
+    })
 }
 
 function handleGuestJoined(userData: any) {
     gameState = addPlayer(gameState, newPlayer(userData.userId, userData.userName))
-    console.log(gameState)
+    console.log(`${userData.userName} si è unito alla partita!`)
+    
 }
 
 export { GameManager }
