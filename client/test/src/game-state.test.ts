@@ -21,6 +21,12 @@ describe('Game State tests',() => {
         const newState = addPlayer(gameState, myPlayer)
         expect(newState.players.length).toEqual(1)
     })
+
+    test('Drawing a card reduces deck size', ()=>{
+        gameState = newSetteMezzoGame()
+        const card = gameState.deck.pop()
+        expect(gameState.deck.length).toBe(39)
+    })
     
     test('Game State is serializable', ()=>{
         gameState = newSetteMezzoGame()
