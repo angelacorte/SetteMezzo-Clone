@@ -1,23 +1,23 @@
 import { JOIN_LOBBY, NEW_LOBBY, RANDOM_LOBBY } from "../global";
-import { Client } from "./Client"
+import { client } from "./Client"
 import * as stio from './stio'
 import {LobbySettings, createLobby} from '../model/lobby/Lobby'
-import { from, map, merge, of, switchMap } from "rxjs";
+import { from, map, of, switchMap } from "rxjs";
 import { newPlayer } from "../model/player/Player";
 
-const client = new Client()
+const connection = client.connection()
 
-const connection = client.eventObservable('connect')
-
-const player = connection
+const username = connection
     .pipe(
         switchMap(() =>
             from(getUsername())
-                .pipe(
-                    switchMap(name =>
-                        of(newPlayer(client.id(), name))
-                    )
-                )
+        )
+    )
+
+const player = username
+    .pipe(
+        switchMap(name =>
+            of(newPlayer(client.id(), name))
         )
     )
 
@@ -47,22 +47,21 @@ action.subscribe(async ({player, choice}) => {
     }
 })
 
-const lobby = player
+export const lobby = player
     .pipe(
         switchMap(player => 
             client.eventObservable('lobby-created')
                 .pipe(
-                    map(lobbyName => ({player, lobbyName}))
+                    map(lobby$ => ({player, lobby$}))
                 )
             )
     )
   
-lobby.subscribe(({player, lobbyName}) => 
-    client.sendEvent('join-lobby', {lobbyName: lobbyName, username: player.name, userId: player.id}))
+lobby.subscribe(({player, lobby$}) => 
+    client.sendEvent('join-lobby', {lobbyName: lobby$.lobbyName, username: player.name, userId: player.id}))
 
-const guest = client.eventObservable('guest-joined').subscribe(data => console.log(data))
 
-async function getUsername() {
+async function getUsername(): Promise<string> {
     return stio.askQuestion('Hello gamer, please insert your username >')
 }
 
