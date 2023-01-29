@@ -21,4 +21,10 @@ export class Client {
     public id(): string {
         return this.socket.id
     }
+
+    public connection(): Observable<void> {
+        return fromEvent(this.socket, 'connect')
+    }
 }
+
+export const client = new Client()
