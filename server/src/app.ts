@@ -36,7 +36,7 @@ io.on('connect', (socket: Socket)=>{
 
     socket.on("create-lobby", (lobbyCreation: LobbyCreation) => {
         lobbyUtils.addLobby(new Lobby(lobbyCreation.lobbyName, socket.id, LobbyState.CREATED, lobbyCreation.maxParticipants, lobbyCreation.maxRounds))
-        io.to(socket.id).emit("lobby-created", lobbyCreation.lobbyName);
+        io.to(socket.id).emit("lobby-created", lobbyCreation);
     })
 
     socket.on("join-lobby", (lobbyJoining: LobbyJoining) => {
