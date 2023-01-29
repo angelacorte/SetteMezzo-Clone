@@ -1,5 +1,6 @@
 
 require('./controller/StartMenu')
+require('./controller/GameSetup')
 
 /*
 const serverUrl = 'http://localhost:3000';
@@ -44,55 +45,7 @@ async function askCard(value: number) {
 }
 
 socket.on('connect', async ()=>{
-    gameState = newSetteMezzoGame()
-    try {
-        let username = await stio.askQuestion("Hello gamer! Insert your username, please > ");
-        player = newPlayer(socket.id, username);
-        let action = await stio.askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]);
-        switch (action) {
-            case NEW_LOBBY:
-                let toCreate = await stio.askQuestion("Please, insert a lobby name > ");
-                let maxRounds = await stio.askQuestion("How many turns you want to play at most? > ");
-                maxPlayers = await stio.askQuestion("How many players do you want at most? > ");
-                socket.emit("create-lobby", {lobbyName: toCreate, maxRounds: maxRounds, maxPlayers: maxPlayers});
-                break;
-            case JOIN_LOBBY:
-                let toJoin = await stio.askQuestion("Please, insert a lobby name > ");
-                joinLobby(toJoin, player.name, player.id);
-                break;
-            case RANDOM_LOBBY:
-                socket.emit("join-random-lobby", player.name, player.id);
-                break;
-        }
-    } catch(error){
-        console.log(error);
-    }
-
-    socket.on("lobby-created", (lobbyName: string)=>{
-        console.log(`You created lobby: ${lobbyName}`);
-        joinLobby(lobbyName, player.name, player.id);
-    });
-
-    socket.on("retry-lobby", async ()=>{
-        let toJoin = await stio.askQuestion("Please, insert a valid lobby name > ");
-        joinLobby(toJoin, player.name, player.id);
-    });
-
-    socket.on("lobby-joined", (lobbyName, owner)=>{
-        ownerId = owner;
-        lobbyId = lobbyName;
-        console.log(`You joined the lobby: ${lobbyName}`);
-    })
-
-    socket.on("guest-joined", (userName, userId) => {
-        if(userId != player.id) console.log(`Guest ${userName} joined the lobby.`)
-        gameState = addPlayer(gameState, newPlayer(userId, userName))
-        if(gameState.players.length == maxPlayers) {
-            console.log("The last player joined! The game can begin!")
-            socket.emit("start-game", gameState);
-        }
-    });
-
+    
     socket.on("round", async (gs:GameState, cp, cr, maxR) => {
         gameState = gs
         maxRounds = maxR
@@ -119,10 +72,6 @@ socket.on('connect', async ()=>{
                 await askCard(0)
             }
         }
-    })
-
-    socket.on("announce-winner", (victories) => {
-        console.log("Game ended. \n THE WINNER IS ...")
     })
 });
 */
