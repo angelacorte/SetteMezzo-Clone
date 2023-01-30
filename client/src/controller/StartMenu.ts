@@ -1,9 +1,10 @@
 import { JOIN_LOBBY, NEW_LOBBY, RANDOM_LOBBY } from "../global";
 import { client } from "./Client"
 import * as stio from './stio'
-import {LobbySettings, createLobby} from '../model/lobby/Lobby'
+import { createLobby} from '../model/lobby/LobbyModel'
 import { from, map, of, switchMap } from "rxjs";
-import { newPlayer } from "../model/player/Player";
+import { newPlayer } from "../model/player/PlayerModel";
+import {LobbySettings} from "../../../common/lobby/Lobby";
 
 const connection = client.connection()
 
@@ -70,8 +71,7 @@ async function lobbyCreation(): Promise<LobbySettings> {
         const toCreate = await stio.askQuestion("Please, insert a lobby name > ");
         const maxRounds = await stio.askQuestion("How many turns you want to play at most? > ");
         const maxPlayers = await stio.askQuestion("How many players do you want at most? > ");
-        const initialMoney = await stio.askQuestion("How many sbleuri you want to play with? > ");
-        return Promise.resolve(createLobby(toCreate, maxRounds, maxPlayers, initialMoney)) 
+        return Promise.resolve(createLobby(toCreate, maxRounds, maxPlayers))
     } catch (err) {
         return Promise.reject(err)
     } 

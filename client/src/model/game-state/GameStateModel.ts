@@ -1,8 +1,10 @@
-import {Card} from "@common/card/Card"
-import {createSetteMezzoDeck, shuffle} from "../deck/DeckModel";
-import {Player} from "@common/player/Player";
-import {Deck} from "@common/deck/Deck";
-import {GameState} from "@common/game-state/GameState";
+import {createSetteMezzoDeck, shuffle} from "../deck/DeckModel"
+import {Deck} from "../../../../common/deck/Deck";
+import {Player} from "../../../../common/player/Player";
+import {GameState} from "../../../../common/game-state/GameState";
+import {Card} from "../../../../common/card/Card";
+
+
 export function createGameState(deck: Deck, players: Array<Player>): GameState {
     return { deck: deck, players: players}
 }

@@ -1,5 +1,5 @@
-import {Card} from "@common/card/Card";
-import {Hand, Player} from "@common/player/Player";
+import {Hand, Player} from "../../../../common/player/Player";
+import {Card} from "../../../../common/card/Card";
 
 
 export function newPlayer(id: string, name: string): Player {

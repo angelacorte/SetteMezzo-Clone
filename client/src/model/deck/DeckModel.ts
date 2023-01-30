@@ -1,6 +1,6 @@
-import { Card, Values, Suits } from "@common/card/Card";
 import {from, nameOf} from "../card/CardModel";
-import {Deck} from "@common/deck/Deck";
+import {Deck} from "../../../../common/deck/Deck";
+import {Card, Suits, Values} from "../../../../common/card/Card";
 
 export function createSetteMezzoDeck(): Deck {
     const cards = new Array<Card>()

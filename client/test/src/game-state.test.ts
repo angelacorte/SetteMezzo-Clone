@@ -1,7 +1,8 @@
-import { addPlayer, GameState, newGame, newSetteMezzoGame } from "../../src/model/game-state/GameState"
-import { giveCard, newPlayer } from "../../src/model/player/Player"
-import { Suits, Values } from "../../src/model/card/Card"
+import { addPlayer, newGame, newSetteMezzoGame } from "../../src/model/game-state/GameStateModel"
+import { giveCard, newPlayer } from "../../src/model/player/PlayerModel"
 
+import {Suits, Values} from "../../../common/card/Card";
+import {GameState} from "../../../common/game-state/GameState";
 
 describe('Game State tests',() => {
     

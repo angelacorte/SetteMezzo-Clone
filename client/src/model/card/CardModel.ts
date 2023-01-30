@@ -1,4 +1,4 @@
-import {Card, VALUE_MAP} from "@common/card/Card"
+import {Card, VALUE_MAP} from "../../../../common/card/Card";
 
 export function from(suit: string, value: string): Card {
     return {suit: suit, value: value}
