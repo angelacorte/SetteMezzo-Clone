@@ -3,21 +3,14 @@ import { client } from "./Client"
 import * as stio from './stio'
 import {LobbySettings, createLobby} from '../model/lobby/Lobby'
 import { from, map, of, switchMap } from "rxjs";
-import { newPlayer } from "../model/player/Player";
+import { newPlayer, Player } from "../model/player/Player";
 
 const connection = client.connection()
 
-const username = connection
+export const player = connection
     .pipe(
         switchMap(() =>
-            from(getUsername())
-        )
-    )
-
-const player = username
-    .pipe(
-        switchMap(name =>
-            of(newPlayer(client.id(), name))
+            from(getPlayer())
         )
     )
 
@@ -61,8 +54,9 @@ lobby.subscribe(({player, lobby$}) =>
     client.sendEvent('join-lobby', {lobbyName: lobby$.lobbyName, username: player.name, userId: player.id}))
 
 
-async function getUsername(): Promise<string> {
-    return stio.askQuestion('Hello gamer, please insert your username >')
+async function getPlayer(): Promise<Player> {
+    const name = await stio.askQuestion('Hello gamer, please insert your username >')
+    return Promise.resolve(newPlayer(client.id(), name))
 }
 
 async function lobbyCreation(): Promise<LobbySettings> {
