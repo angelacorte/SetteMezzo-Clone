@@ -1,12 +1,8 @@
-import { Card } from "../card/Card";
-import {createSetteMezzoDeck, Deck, shuffle} from "../deck/Deck";
-import { Player } from "../player/Player";
-
-export interface GameState {
-    readonly deck: Deck
-    readonly players: Array<Player>
-}
-
+import {Card} from "@common/card/Card"
+import {createSetteMezzoDeck, shuffle} from "../deck/DeckModel";
+import {Player} from "@common/player/Player";
+import {Deck} from "@common/deck/Deck";
+import {GameState} from "@common/game-state/GameState";
 export function createGameState(deck: Deck, players: Array<Player>): GameState {
     return { deck: deck, players: players}
 }
