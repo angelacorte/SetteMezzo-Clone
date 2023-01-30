@@ -23,7 +23,7 @@ export enum Values {
     KING = "KING"
 }
 
-const VALUE_MAP: Map<string, number> = new Map([
+export const VALUE_MAP: Map<string, number> = new Map([
     ["ACE", 1],
     ["TWO", 2],
     ["THREE", 3],
@@ -35,20 +35,3 @@ const VALUE_MAP: Map<string, number> = new Map([
     ["KNIGHT", 0.5],
     ["KING", 0.5],
 ])
-
-export function from(suit: string, value: string): Card {
-    return {suit: suit, value: value}
-}
-
-export function nameOf(card: Card): string {
-    return `${card.value} of ${card.suit}`
-}
-
-export function pointValueOf(card: Card): number {
-    let value = VALUE_MAP.get(card.value)
-    if(value){
-        return value
-    } else {
-        throw new Error('Value not valid')
-    }
-}

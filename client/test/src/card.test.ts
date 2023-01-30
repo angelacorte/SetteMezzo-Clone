@@ -1,4 +1,6 @@
-import { Card, from, nameOf, Suits, Values, pointValueOf } from "../../src/model/card/Card"
+import { from, nameOf, pointValueOf } from "../../src/model/card/CardModel"
+import {Card, Suits, Values} from "../../../common/card/Card";
+
 
 describe('Card tests', ()=>{
     let myCard : Card

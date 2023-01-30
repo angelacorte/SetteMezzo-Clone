@@ -1,6 +1,6 @@
-import { Card, from, Values, Suits, nameOf } from "../card/Card";
-
-export type Deck = Array<Card>
+import {from, nameOf} from "../card/CardModel";
+import {Deck} from "../../../../common/deck/Deck";
+import {Card, Suits, Values} from "../../../../common/card/Card";
 
 export function createSetteMezzoDeck(): Deck {
     const cards = new Array<Card>()

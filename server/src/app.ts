@@ -1,8 +1,10 @@
 import {createServer} from "http";
 import {Server, Socket} from "socket.io";
 import {LobbyUtilsImpl} from "./utils/LobbyUtils";
+import {GameState} from "../../common/game-state/GameState";
+import {LobbyJoining, LobbySettings} from "../../common/lobby/Lobby";
+import {Player} from "../../common/player/Player";
 import {Lobby, LobbyState} from "./model/lobby/Lobby";
-import {GameState, LobbyCreation, LobbyJoining, PlayerData, VictoriesStatus} from "./model/events/ServerData";
 
 const express = require('express');
 const utils = require("./utils/utils");
@@ -18,48 +20,41 @@ httpServer.listen(PORT, function () {
     console.log("Listening on port: " +PORT);
 });
 
-function refreshActiveLobbies(): Array<string> {
+function refreshActiveLobbies(): Array<Lobby> {
     return lobbyUtils
                 .getLobbies()
-                .filter((l) => l.getState() != LobbyState.STARTED)
-                .map((l) => l.getId());
+                .filter((l) => l.state != LobbyState.STARTED)
 }
 
-function joinLobby(lobbyJoining: LobbyJoining) {
-    const toSend = {userName: lobbyJoining.username, userId: lobbyJoining.userId}
-    io.to(lobbyJoining.ownerId).emit("guest-joined", toSend);
-    io.to(lobbyJoining.userId).emit("lobby-joined", toSend);
+function joinLobby(lobby: LobbyJoining, ownerId: string) {
+    const toSend = {userName: lobby.username, userId: lobby.userId}
+    io.to(ownerId).emit("guest-joined", toSend);
 }
 
 io.on('connect', (socket: Socket)=>{
     console.log(`socket ${socket.id} connected`)
 
-    socket.on("create-lobby", (lobbyCreation: LobbyCreation) => {
-        lobbyUtils.addLobby(new Lobby(lobbyCreation.lobbyName, socket.id, LobbyState.CREATED, lobbyCreation.maxParticipants, lobbyCreation.maxRounds))
-        io.to(socket.id).emit("lobby-created", lobbyCreation);
+    socket.on("create-lobby", (lobbySettings: LobbySettings) => {
+        let lobby : Lobby = {participants: [], lobbySettings: lobbySettings, owner: socket.id, state: LobbyState.CREATED}
+        lobbyUtils.addLobby(lobby)
+        io.to(socket.id).emit("lobby-created", lobbySettings);
     })
 
-    socket.on("join-lobby", (lobbyJoining: LobbyJoining) => {
-        if(refreshActiveLobbies().some((l) => l === lobbyJoining.lobbyName)){
-            socket.join(lobbyJoining.lobbyName);
-            socket.data.lobby = lobbyJoining.lobbyName;
-            lobbyJoining.ownerId = lobbyUtils.getLobby(lobbyJoining.lobbyName).getOwner();
-            joinLobby(lobbyJoining);
-        } else {
-            io.to(lobbyJoining.userId).emit("retry-lobby");
+    socket.on("join-lobby", (lobby: LobbyJoining) => {
+        if(refreshActiveLobbies().some((l) => l.lobbySettings.lobbyName === lobby.lobbyName)){
+            socket.join(lobby.lobbyName);
+            socket.data.lobby = lobby.lobbyName;
+            joinLobby(lobby, lobbyUtils.getLobby(lobby.lobbyName).owner);
         }
     });
 
-    socket.on("join-random-lobby", (data: PlayerData) => {
-        let lobbyJoining: LobbyJoining = {
-            lobbyName: "", ownerId: "", userId: data.playerId, username: data.playerName
-        }
+    socket.on("join-random-lobby", (player: Player) => {
         let activeLobbies = refreshActiveLobbies();
-        lobbyJoining.lobbyName = activeLobbies[utils.getRandomInt(activeLobbies.length)]
-        socket.join(lobbyJoining.lobbyName);
-        socket.data.lobby = lobbyJoining.lobbyName;
-        lobbyJoining.ownerId = lobbyUtils.getLobby(lobbyJoining.lobbyName).getOwner();
-        joinLobby(lobbyJoining);
+        let lobby: Lobby = activeLobbies[utils.getRandomInt(activeLobbies.length)]
+        let joining: LobbyJoining = {lobbyName: lobby.lobbySettings.lobbyName, userId: player.id, username: player.name}
+        socket.join(lobby.lobbySettings.lobbyName);
+        socket.data.lobby = lobby.lobbySettings.lobbyName;
+        joinLobby(joining, lobbyUtils.getLobby(lobby.lobbySettings.lobbyName).owner);
     });
 
     socket.on("start-game", (gs: GameState)=> {
@@ -67,14 +62,14 @@ io.on('connect', (socket: Socket)=>{
         let lobbyInfo = lobbyUtils.getLobby(socket.data.lobby)
 
         //currentPlayer = 0 / currentRound = 1
-        io.to(socket.data.lobby).emit("round", gs, 0, 1, lobbyInfo.getMaxRounds());
+        io.to(socket.data.lobby).emit("round", {gstate: gs, cp: 0, cr: 1, maxR: lobbyInfo.lobbySettings.maxRounds});
     });
 
     socket.on("next", (gs: GameState, currentPlayer, currentRound, maxRounds) => {
-        io.to(socket.data.lobby).emit("round", gs, currentPlayer, currentRound, maxRounds);
+        io.to(socket.data.lobby).emit("round", {gstate: gs, cp: currentPlayer, cr: currentRound, maxR: maxRounds});
     })
 
-    socket.on("end-game", (victories: VictoriesStatus) => {
+    socket.on("end-game", (victories: any) => { //todo
         io.to(socket.data.lobby).emit("announce-winner", victories);
     })
 });

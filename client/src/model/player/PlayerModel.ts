@@ -1,12 +1,6 @@
-import { Card } from "../card/Card"
+import {Hand, Player} from "../../../../common/player/Player";
+import {Card} from "../../../../common/card/Card";
 
-export interface Player {
-    readonly id: string
-    readonly name: string
-    readonly hand: Hand
-}
-
-export type Hand = Array<Card>
 
 export function newPlayer(id: string, name: string): Player {
     return createPlayer(id, name, new Array<Card>())

@@ -1,8 +1,8 @@
 import { switchMap, map } from 'rxjs'
+import { GameState } from '../../../common/game-state/GameState'
+import { Player } from '../../../common/player/Player'
 import { MAX_VALUE } from '../global'
-import { pointValueOf } from '../model/card/Card'
-import { GameState } from '../model/game-state/GameState'
-import { Player } from '../model/player/Player'
+import { pointValueOf } from '../model/card/CardModel'
 import {client} from './Client'
 import {player} from './StartMenu'
 import * as stio from './stio'
@@ -17,10 +17,7 @@ const nextround = player
         )
     )
 
-nextround.subscribe(async ({player$, gstate, currentP, currentR, maxP}) => {
-    const currentPlayer: Player = gstate.players[currentP]
-    
-})
+nextround.subscribe(console.log)
 
 async function askCards(gstate: GameState, totalValue: number): Promise<{gstate: GameState, handValue: number}> {
     const card = gstate.deck.pop()

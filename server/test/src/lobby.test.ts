@@ -5,30 +5,47 @@ describe("My lobby", () => {
 
     let lobby: Lobby;
     let code = getRandomCode()
+    const MAX_ROUNDS = 3
+    const MAX_PLAYERS = 5
     beforeAll(() => {
-        lobby = new Lobby(code, "Angela", LobbyState.CREATED, 10, 10);
+        lobby = {
+            lobbySettings: {
+                lobbyName: code,
+                maxPlayers: MAX_PLAYERS,
+                maxRounds: MAX_ROUNDS
+            },
+            owner: "Angela",
+            participants: ["Angela", "Leonardo" ,"Mario"],
+            state: LobbyState.CREATED
+        }
+        // lobby = new Lobby(code, "Angela", LobbyState.CREATED, 10, 10);
     });
 
     test("getLobbyOwner", () => {
-        expect(lobby.getOwner()).toEqual("Angela");
+        expect(lobby.owner).toEqual("Angela");
     });
 
     test("changeState", () => {
-        lobby.setState(LobbyState.STARTED);
-        expect(lobby.getState()).toBe(LobbyState.STARTED);
+        lobby.state  = LobbyState.STARTED;
+        expect(lobby.state).toBe(LobbyState.STARTED);
     });
 
     test("getLobby", () => {
-        expect(lobby.getId()).toEqual(code);
+        expect(lobby.lobbySettings.lobbyName).toEqual(code);
     });
 
     test("lobbySettings", () => {
-        expect(lobby.getMaxParticipants()).toBe(10);
-        expect(lobby.getMaxRounds()).toBe(10);
+        expect(lobby.lobbySettings.maxPlayers).toBe(MAX_PLAYERS);
+        expect(lobby.lobbySettings.maxRounds).toBe(MAX_ROUNDS);
     });
 
     test("changeOwner", () => {
-        lobby = new Lobby(code, "Leonardo", LobbyState.STARTED, 10, 10)
-        expect(lobby.getOwner()).toEqual("Leonardo");
+        lobby = {
+            lobbySettings: lobby.lobbySettings,
+            owner: "Leonardo",
+            participants: lobby.participants,
+            state: lobby.state
+        }
+        expect(lobby.owner).toEqual("Leonardo");
     });
 })
