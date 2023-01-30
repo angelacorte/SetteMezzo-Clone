@@ -1,9 +1,10 @@
 import { map, of, switchMap } from "rxjs";
-import { addPlayer, GameState, newSetteMezzoGame } from "../model/game-state/GameState";
-import { LobbySettings } from "../model/lobby/Lobby";
-import { newPlayer } from "../model/player/Player";
+import { addPlayer, newSetteMezzoGame } from "../model/game-state/GameStateModel";
+import { newPlayer } from "../model/player/PlayerModel";
 import { client } from "./Client";
 import { lobby } from "./StartMenu";
+import {GameState} from "../../../common/game-state/GameState";
+import {LobbySettings} from "../../../common/lobby/Lobby";
 
 const connection = client.connection()
 
