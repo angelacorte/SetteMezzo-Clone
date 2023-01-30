@@ -1,6 +1,6 @@
-
 require('./controller/StartMenu')
 require('./controller/GameSetup')
+require('./controller/GameLoop')
 
 /*
 const serverUrl = 'http://localhost:3000';
