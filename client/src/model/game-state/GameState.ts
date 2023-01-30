@@ -28,3 +28,9 @@ export function addPlayer(state: GameState, player: Player): GameState {
     newPlayers.push(player)
     return createGameState(state.deck, newPlayers)
 }
+
+export function addPlayers(state: GameState, players: Array<Player>): GameState {
+    const newPlayers = state.players
+    newPlayers.push(...players)
+    return createGameState(state.deck, newPlayers)
+}
