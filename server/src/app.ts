@@ -62,11 +62,12 @@ io.on('connect', (socket: Socket)=>{
         let lobbyInfo = lobbyUtils.getLobby(socket.data.lobby)
 
         //currentPlayer = 0 / currentRound = 1
-        io.to(socket.data.lobby).emit("round", {gstate: gs, cp: 0, cr: 1, maxR: lobbyInfo.lobbySettings.maxRounds});
+        io.to(socket.data.lobby).emit("round", {gstate: gs, currentP: 0, currentR: 1, maxR: lobbyInfo.lobbySettings.maxRounds});
     });
 
-    socket.on("next", (gs: GameState, currentPlayer, currentRound, maxRounds) => {
-        io.to(socket.data.lobby).emit("round", {gstate: gs, cp: currentPlayer, cr: currentRound, maxR: maxRounds});
+    socket.on("next", ({gameState, currentPlayer, currentRound, maxRounds}) => {
+        console.log(gameState)
+        io.to(socket.data.lobby).emit("round", {gstate: gameState, currentP: currentPlayer, currentR: currentRound, maxR: maxRounds});
     })
 
     socket.on("end-game", (victories: any) => { //todo
