@@ -32,3 +32,9 @@ export function addPlayers(state: GameState, players: Array<Player>): GameState 
     newPlayers.push(...players)
     return createGameState(state.deck, newPlayers)
 }
+
+export function updatePlayer(state: GameState, oldPlayer: Player, newPlayer: Player): GameState {
+    const newPlayers = state.players.filter(p => p.id != oldPlayer.id)
+    newPlayers.push(newPlayer)
+    return createGameState(state.deck, newPlayers)
+}
