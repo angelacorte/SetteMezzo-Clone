@@ -70,6 +70,10 @@ io.on('connect', (socket: Socket)=>{
         io.to(socket.data.lobby).emit("round", {gstate: gameState, currentP: currentPlayer, currentR: currentRound, maxR: maxRounds});
     })
 
+    socket.on("won-round", ({gameState, winners, round}) => {
+        io.to(socket.data.lobby).emit("round-winner", {gameState: gameState, winners: winners, round: round})
+    })
+
     socket.on("end-game", (victories: any) => { //todo
         io.to(socket.data.lobby).emit("announce-winner", victories);
     })
