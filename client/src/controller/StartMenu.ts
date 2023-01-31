@@ -37,7 +37,7 @@ action.subscribe(async ({player, choice}) => {
             client.sendEvent('join-lobby', {lobbyName: toJoin, username: player.name, userId: player.id});
             break;
         case RANDOM_LOBBY:
-            client.sendEvent("join-random-lobby", {username: player.name, userId: player.id});
+            client.sendEvent("join-random-lobby", player);
             break;
     }
 })
