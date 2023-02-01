@@ -66,7 +66,6 @@ io.on('connect', (socket: Socket)=>{
     });
 
     socket.on("next", ({gameState, currentPlayer, currentRound, maxRounds}) => {
-        console.log(gameState)
         io.to(socket.data.lobby).emit("round", {gstate: gameState, currentP: currentPlayer, currentR: currentRound, maxR: maxRounds});
     })
 });
