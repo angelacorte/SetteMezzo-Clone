@@ -68,5 +68,9 @@ io.on('connect', (socket: Socket)=>{
     socket.on("next", ({gameState, currentPlayer, currentRound, maxRounds}) => {
         io.to(socket.data.lobby).emit("round", {gstate: gameState, currentP: currentPlayer, currentR: currentRound, maxR: maxRounds});
     })
+
+    socket.on("card-drawn", ({card, player}) => {
+        io.to(socket.data.lobby).emit("show-card", {card: card, opponent: player})
+    })
 });
 
