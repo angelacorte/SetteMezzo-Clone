@@ -75,21 +75,27 @@ function checkRoundWinners(gs:GameState) {
     const winningValue = gs.players.map(p => p.points).reduce((acc, p) => {
         if(acc > p) { return acc } else { return p }
     }, 0)
-
-    const winners = gs.players.filter(p => p.points == winningValue)
-    winners.forEach(w => w.wins +=1 )
-    console.log('The round winners are:')
-    winners.map(p => p.name).forEach(n => console.log(n))
+    if(winningValue > 0){
+        const winners = gs.players.filter(p => p.points == winningValue)
+        winners.forEach(w => w.wins +=1 )
+        console.log('The round winners are:')
+        winners.forEach((w) => console.log(`${w.name} with ${w.points} points`))
+    }else{
+     console.log("Nobody won this round.")
+    }
 }
 
 function checkGameWinners(gs: GameState) {
     const mostWins = gs.players.map(p => p.wins).reduce((acc, p) => {
         if(acc > p) { return acc } else { return p }
     }, 0)
-
-    const winners = gs.players.filter(p => p.wins == mostWins)
-    console.log('The game winners are:')
-    winners.map(p => p.name).forEach(n => console.log(n))
+    if(mostWins > 0){
+        const winners = gs.players.filter(p => p.wins == mostWins)
+        console.log('The game winners are:')
+        winners.forEach((w) => console.log(`${w.name} with ${w.wins} wins`))
+    }else{
+        console.log("Nobody won the game.")
+    }
 }
 
 function resetPoints(gstate: GameState) {
