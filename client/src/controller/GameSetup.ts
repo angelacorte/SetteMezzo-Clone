@@ -33,11 +33,11 @@ guestJoining.subscribe(({gstate, lobby$, userData}) => {
 
 function handleGuestJoined(gameState: GameState, userData: any) {
     gameState = addPlayer(gameState, newPlayer(userData.userId, userData.userName))
-    console.log(`${userData.userName} si è unito alla partita!`)
+    console.log(`${userData.userName} joined the lobby!`)
 }
 
 function startGame(gameState: GameState, lobbySettings: LobbySettings) {
     if(!(gameState.players.length == lobbySettings.maxPlayers)) return
-    console.log(`L'ultimo giocatore si è unito. La partita può cominciare!`)
+    console.log(`Last player joined the lobby. Let the game begins!`)
     client.sendEvent('start-game', gameState)
 }
