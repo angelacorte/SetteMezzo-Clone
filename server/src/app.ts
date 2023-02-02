@@ -40,18 +40,21 @@ io.on('connect', (socket: Socket)=>{
         io.to(socket.id).emit("lobby-created", lobbySettings);
     })
 
-    socket.on("join-lobby", (lobby: LobbyJoining) => {
-        if(refreshActiveLobbies().some((l) => l.lobbySettings.lobbyName === lobby.lobbyName)){
-            socket.join(lobby.lobbyName);
-            socket.data.lobby = lobby.lobbyName;
-            joinLobby(lobby, lobbyUtils.getLobby(lobby.lobbyName).owner);
+    socket.on("join-lobby", (joining: LobbyJoining) => {
+        const searched = refreshActiveLobbies().filter(l => l.lobbySettings.lobbyName === joining.lobbyName).pop()
+        if(searched) {
+            searched.participants.push(joining.userId)
+            socket.join(joining.lobbyName);
+            socket.data.lobby = joining.lobbyName;
+            joinLobby(joining, lobbyUtils.getLobby(joining.lobbyName).owner);
         }
     });
 
     socket.on("join-random-lobby", (player: Player) => {
-        let activeLobbies = refreshActiveLobbies();
-        let lobby: Lobby = activeLobbies[utils.getRandomInt(activeLobbies.length)]
-        let joining: LobbyJoining = {lobbyName: lobby.lobbySettings.lobbyName, userId: player.id, username: player.name}
+        const activeLobbies = refreshActiveLobbies();
+        const lobby: Lobby = activeLobbies[utils.getRandomInt(activeLobbies.length)]
+        lobby.participants.push(player.id)
+        const joining: LobbyJoining = {lobbyName: lobby.lobbySettings.lobbyName, userId: player.id, username: player.name}
         socket.join(lobby.lobbySettings.lobbyName);
         socket.data.lobby = lobby.lobbySettings.lobbyName;
         joinLobby(joining, lobbyUtils.getLobby(lobby.lobbySettings.lobbyName).owner);
@@ -66,8 +69,12 @@ io.on('connect', (socket: Socket)=>{
     });
 
     socket.on("next", ({gameState, currentPlayer, currentRound, maxRounds}) => {
-        console.log(gameState)
         io.to(socket.data.lobby).emit("round", {gstate: gameState, currentP: currentPlayer, currentR: currentRound, maxR: maxRounds});
+    })
+
+    socket.on("card-drawn", ({card, player}) => {
+        const otherPlayers = lobbyUtils.getLobby(socket.data.lobby).participants.filter(p => p != player.id)
+        otherPlayers.forEach(p => io.to(p).emit("show-card", {card: card, opponent: player}))
     })
 });
 

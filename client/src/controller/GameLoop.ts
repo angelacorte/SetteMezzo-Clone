@@ -8,6 +8,7 @@ import { setPoints } from '../model/player/PlayerModel'
 import {client} from './Client'
 import {player} from './StartMenu'
 import * as stio from './stio'
+import {Card} from "../../../common/card/Card";
 
 const nextround: Observable<{
     player$: Player
@@ -23,6 +24,15 @@ const nextround: Observable<{
                 ) 
         )
     )
+
+const showCard: Observable<{
+    card: Card,
+    opponent: Player
+}> = client.eventObservable('show-card')
+
+showCard.subscribe(async ({card, opponent}) => {
+    console.log(`${opponent.name} draw another card: ${card.value} of ${card.suit}`)
+})
 
 nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
     if(currentP == gstate.players.length) {
@@ -40,13 +50,12 @@ nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
     console.log(`${currentPlayer.name}'s turn`)
     if (currentPlayer.id == player$.id) {
         try {
-            const g = await askCards(gstate, currentPlayer, 0)
+            const g = await askCards(gstate, currentPlayer, START_VALUE)
             client.sendEvent('next', {gameState: g.newState, currentPlayer: currentP+1, currentRound: currentR, maxRounds: maxR})
         } catch(err) {
             client.sendEvent('next', {gameState: gstate, currentPlayer: currentP+1, currentRound: currentR, maxRounds: maxR})
             console.log(err)
         }
-        
     }
 })
 
@@ -57,6 +66,10 @@ async function askCards(gstate: GameState, player: Player, totalValue: number): 
     }
     console.log(`You draw ${card.value} of ${card.suit}`)
     const handValue = totalValue + pointValueOf(card)
+    console.log("total val ", totalValue)
+    if(totalValue > START_VALUE){
+        client.sendEvent("card-drawn", {card: card, player: player})
+    }
     console.log(`Your hand is worth ${handValue} points`)
     if(handValue <= MAX_VALUE) {
         const choice = await stio.askChoice([`Another card`, 'Stop'])
@@ -75,21 +88,27 @@ function checkRoundWinners(gs:GameState) {
     const winningValue = gs.players.map(p => p.points).reduce((acc, p) => {
         if(acc > p) { return acc } else { return p }
     }, 0)
-
-    const winners = gs.players.filter(p => p.points == winningValue)
-    winners.forEach(w => w.wins +=1 )
-    console.log(`The round winners, with a total of ${winningValue} points are:`)
-    winners.map(p => p.name).forEach(n => console.log(n))
+    if(winningValue > 0){
+        const winners = gs.players.filter(p => p.points == winningValue)
+        winners.forEach(w => w.wins +=1 )
+        console.log('== The round WINNERS are:')
+        winners.forEach((w) => console.log(`- ${w.name} with ${w.points} points`))
+    }else{
+     console.log("Nobody won this round.")
+    }
 }
 
 function checkGameWinners(gs: GameState) {
     const mostWins = gs.players.map(p => p.wins).reduce((acc, p) => {
         if(acc > p) { return acc } else { return p }
     }, 0)
-
-    const winners = gs.players.filter(p => p.wins == mostWins)
-    console.log(`The game winners, with a total ${mostWins} wins of are:`)
-    winners.map(p => p.name).forEach(n => console.log(n))
+    if(mostWins > 0){
+        const winners = gs.players.filter(p => p.wins == mostWins)
+        console.log('== The game WINNERS are:')
+        winners.forEach((w) => console.log(`${w.name} with ${w.wins} wins`))
+    }else{
+        console.log("Nobody won the game.")
+    }
 }
 
 function resetPoints(gstate: GameState) {
