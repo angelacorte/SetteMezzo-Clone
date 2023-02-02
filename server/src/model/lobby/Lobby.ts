@@ -5,7 +5,7 @@ import {LobbySettings} from "../../../../common/lobby/Lobby";
  */
 export interface Lobby{
     readonly lobbySettings: LobbySettings
-    readonly owner: string;
+    owner: string;
     state: LobbyState;
     participants: string[];
 }
