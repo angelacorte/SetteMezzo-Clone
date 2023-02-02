@@ -26,20 +26,12 @@ const nextround: Observable<{
     )
 
 const showCard: Observable<{
-    player$: Player,
     card: Card,
     opponent: Player
-}> = player.pipe(
-    switchMap(player$ =>
-        client.eventObservable('show-card')
-            .pipe(
-                map(({card, opponent}) => ({player$, card, opponent}))
-            )
-    )
-)
+}> = client.eventObservable('show-card')
 
-showCard.subscribe(async ({player$, card, opponent}) => {
-    if(opponent.id != player$.id) console.log(`${opponent.name} draw another card: ${card.value} of ${card.suit}`)
+showCard.subscribe(async ({card, opponent}) => {
+    console.log(`${opponent.name} draw another card: ${card.value} of ${card.suit}`)
 })
 
 nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
