@@ -52,6 +52,8 @@ io.on('connect', (socket: Socket)=>{
             socket.join(joining.lobbyName);
             socket.data.lobby = joining.lobbyName;
             joinLobby(joining, lobbyUtils.getLobby(joining.lobbyName).owner);
+        } else {
+            io.to(socket.id).emit('retry-search', joining)
         }
     });
 
