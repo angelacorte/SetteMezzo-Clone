@@ -78,7 +78,7 @@ function checkRoundWinners(gs:GameState) {
 
     const winners = gs.players.filter(p => p.points == winningValue)
     winners.forEach(w => w.wins +=1 )
-    console.log('The round winners are:')
+    console.log(`The round winners, with a total of ${winningValue} are:`)
     winners.map(p => p.name).forEach(n => console.log(n))
 }
 
@@ -88,7 +88,7 @@ function checkGameWinners(gs: GameState) {
     }, 0)
 
     const winners = gs.players.filter(p => p.wins == mostWins)
-    console.log('The game winners are:')
+    console.log(`The game winners, with a total ${mostWins} of are:`)
     winners.map(p => p.name).forEach(n => console.log(n))
 }
 
