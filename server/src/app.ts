@@ -35,9 +35,14 @@ io.on('connect', (socket: Socket)=>{
     console.log(`socket ${socket.id} connected`)
 
     socket.on("create-lobby", (lobbySettings: LobbySettings) => {
-        let lobby : Lobby = {participants: [], lobbySettings: lobbySettings, owner: socket.id, state: LobbyState.CREATED}
-        lobbyUtils.addLobby(lobby)
-        io.to(socket.id).emit("lobby-created", lobbySettings);
+        const searched = refreshActiveLobbies().filter(l => l.lobbySettings.lobbyName === lobbySettings.lobbyName).pop()
+        if(searched) {
+            io.to(socket.id).emit('creation-error', lobbySettings)
+        } else {
+            const lobby : Lobby = {participants: [], lobbySettings: lobbySettings, owner: socket.id, state: LobbyState.CREATED}
+            lobbyUtils.addLobby(lobby)
+            io.to(socket.id).emit("lobby-created", lobbySettings);
+        }
     })
 
     socket.on("join-lobby", (joining: LobbyJoining) => {

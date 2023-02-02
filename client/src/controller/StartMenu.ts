@@ -2,7 +2,7 @@ import { JOIN_LOBBY, NEW_LOBBY, RANDOM_LOBBY } from "../global";
 import { client } from "./Client"
 import * as stio from './stio'
 import { createLobby} from '../model/lobby/LobbyModel'
-import { from, map, of, switchMap } from "rxjs";
+import { from, map, Observable, switchMap } from "rxjs";
 import { newPlayer } from "../model/player/PlayerModel";
 import {LobbySettings} from "../../../common/lobby/Lobby";
 import { Player } from "../../../common/player/Player";
@@ -55,6 +55,13 @@ export const lobby = player
 lobby.subscribe(({player, lobby$}) => 
     client.sendEvent('join-lobby', {lobbyName: lobby$.lobbyName, username: player.name, userId: player.id}))
 
+const creationError: Observable<LobbySettings> = client.eventObservable('creation-error')
+
+creationError.subscribe(async (oldSettings)=>{
+    const newName = await stio.askQuestion('Please, insert another lobby name:')
+    const lobbySettings = createLobby(newName, oldSettings.maxPlayers, oldSettings.maxRounds)
+    client.sendEvent('create-lobby', lobbySettings)
+})
 
 async function getPlayer(): Promise<Player> {
     const name = await stio.askQuestion('Hello gamer, please insert your username >')
