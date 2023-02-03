@@ -1,17 +1,25 @@
 import inquirer from "inquirer";
 
-async function askQuestion(message: string) {
+async function askWithMessage(message: string, questionType: any) {
     return inquirer
                 .prompt({
                     name: 'question_prompt',
-                    type: 'input',
+                    type: questionType,
                     message: message
                 })
                 .then((answer)=> Promise.resolve(answer.question_prompt))
                 .catch((error)=>Promise.reject(error));
 }
 
-async function askChoice(choices: Array<string>) {
+async function askQuestion(message: string): Promise<string> {
+    return askWithMessage(message, 'input')
+}
+
+async function askNumber(message: string): Promise<number> {
+    return askWithMessage(message, 'number')
+}
+
+async function askChoice(choices: Array<string>): Promise<string> {
     return inquirer
                 .prompt({
                     name: 'choice_prompt',
@@ -23,4 +31,8 @@ async function askChoice(choices: Array<string>) {
                 .catch((error)=> Promise.reject(error));
 }
 
-export { askQuestion, askChoice }
+async function askConfirmation(message: string): Promise<boolean> {
+    return askWithMessage(message, 'confirm')
+}
+
+export { askQuestion, askChoice, askConfirmation, askNumber }
