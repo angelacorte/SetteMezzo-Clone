@@ -77,12 +77,17 @@ async function getPlayer(): Promise<Player> {
 
 async function lobbyCreation(): Promise<LobbySettings> {
     try {
-        const toCreate = await stio.askQuestion("Please, insert a lobby name > ");
-        const maxPlayers = await stio.askQuestion("How many players do you want at most? > ");
-        const maxRounds = await stio.askQuestion("How many turns you want to play at most? > ");
+        let toCreate, maxPlayers, maxRounds
+
+        toCreate = await stio.askQuestion("Please, insert a lobby name > ");
+        while(maxPlayers == undefined || Number.isNaN(maxPlayers)) 
+            maxPlayers = await stio.askNumber("How many players do you want at most? > ");
+        while(maxRounds == undefined || Number.isNaN(maxRounds)) 
+            maxRounds = await stio.askNumber("How many turns you want to play at most? > ");
         return Promise.resolve(createLobby(toCreate, maxPlayers, maxRounds))
     } catch (err) {
-        return Promise.reject(err)
+        console.log('There was a problem during lobby creation, please retry')
+        return lobbyCreation()
     } 
 }
 
