@@ -30,11 +30,11 @@ describe("My lobby", () => {
         expect(lobby.state).toBe(LobbyState.STARTED);
     });
 
-    test("getLobby", () => {
+    test("getLobbyName", () => {
         expect(lobby.lobbySettings.lobbyName).toEqual(code);
     });
 
-    test("lobbySettings", () => {
+    test("getLobbySettings", () => {
         expect(lobby.lobbySettings.maxPlayers).toBe(MAX_PLAYERS);
         expect(lobby.lobbySettings.maxRounds).toBe(MAX_ROUNDS);
     });
