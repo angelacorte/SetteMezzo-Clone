@@ -72,8 +72,8 @@ async function askCards(gstate: GameState, player: Player, totalValue: number): 
     }
     console.log(`Your hand is worth ${handValue} points`)
     if(handValue <= MAX_VALUE) {
-        const choice = await stio.askChoice([`Another card`, 'Stop'])
-        if(choice == `Another card`) {
+        const choice = await stio.askConfirmation('Another card?')
+        if(choice) {
             return await askCards(gstate, player, handValue)
         } else {
             const newState = updatePlayer(gstate, player, setPoints(player, handValue))
