@@ -9,6 +9,8 @@ import {client} from './Client'
 import {player} from './StartMenu'
 import * as stio from './stio'
 import {Card} from "../../../common/card/Card";
+import {updateDeck} from "../model/game-state/GameStateModel";
+import {createSetteMezzoDeck, shuffle} from "../model/deck/DeckModel";
 
 const nextround: Observable<{
     player$: Player
@@ -39,7 +41,7 @@ nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
         checkRoundWinners(gstate)
         currentP = 0
         currentR += 1
-        resetPoints(gstate)
+        gstate = resetState(gstate)
         if(currentR > maxR){
             checkGameWinners(gstate)
             return
@@ -111,6 +113,7 @@ function checkGameWinners(gs: GameState) {
     }
 }
 
-function resetPoints(gstate: GameState) {
+function resetState(gstate: GameState): GameState {
     gstate.players.forEach((p) => p.points = START_VALUE)
+    return updateDeck(gstate, shuffle(createSetteMezzoDeck()))
 }
