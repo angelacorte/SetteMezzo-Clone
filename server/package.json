@@ -2,15 +2,16 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "start": "node dist/server/src/app.js",
     "dev": "nodemon src/app.ts",
     "build": "tsc -p .",
+    "deployment": "npm run build; npm run start",
     "test": "jest --watchAll --coverage"
   },
   "keywords": [],
-  "author": "",
+  "author": "Leonardo Micelli, Angela Cortecchia",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^4.17.13",
