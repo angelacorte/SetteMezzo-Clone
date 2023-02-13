@@ -1,18 +1,9 @@
 import {Lobby, LobbyState} from "../model/lobby/Lobby";
-
 /**
  * Lobby instantiate its params based on Client's preferences
  * keep trace of lobbies and their status
  */
 export interface LobbyUtils {
-    /**
-     * Set the lobby params chosen by the owner of the lobby
-     * @param maxParticipants the max number of users in the lobby
-     * @param maxRounds the max number of rounds
-     * @param sbleuri the value used for the bets
-     * @param open if the lobby is public or not
-     */
-    //lobbySettings(maxParticipants: number, maxRounds: number, sbleuri: number, open: boolean): void;
 
     /**
      * add a lobby to @lobbies array
@@ -59,7 +50,7 @@ export class LobbyUtilsImpl implements LobbyUtils{
 
     public removeLobby(lobby: string): void {
         this.lobbies.some((l, i) => {
-            if(l.getId() === lobby){
+            if(l.lobbySettings.lobbyName === lobby){
                 this.lobbies.splice(i, 1);
             }
         })
@@ -67,14 +58,14 @@ export class LobbyUtilsImpl implements LobbyUtils{
 
     public changeState(lobbyId: string, state: LobbyState): void{
         this.lobbies.some((l, i) => {
-            if(l.getId() === lobbyId){
-                l.setState(state);
+            if(l.lobbySettings.lobbyName === lobbyId){
+                l.state = state;
             }
         })
     }
 
     getLobby(lobbyId: string): Lobby {
-        let lobby: Lobby = this.lobbies.filter((l:Lobby) => l.getId() == lobbyId)[0];
+        let lobby: Lobby = this.lobbies.filter((l:Lobby) => l.lobbySettings.lobbyName == lobbyId)[0];
         if(!lobby) throw new Error("Lobby not found");
         return lobby;
     }

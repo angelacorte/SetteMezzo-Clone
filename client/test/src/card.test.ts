@@ -1,27 +1,21 @@
-import { Card } from '../../src/model/card/Card'
-import { SetteMezzoCard, SetteMezzoValue, BriscolaSuits } from '../../src/model/card/SetteMezzoCard'
+import { from, nameOf, pointValueOf } from "../../src/model/card/CardModel"
+import {Card, Suits, Values} from "../../../common/card/Card";
 
-describe('My Card', ()=>{
-    let cardOne: Card
+
+describe('Card tests', ()=>{
+    let myCard : Card
 
     beforeAll(()=>{
-        cardOne = new SetteMezzoCard("King", SetteMezzoValue.KING, BriscolaSuits.COINS);
+        myCard = from(Suits.SWORDS, Values.KING)
     })
 
-    test('getName', ()=>{
-        expect(cardOne.getName()).toEqual("King");
+    test('Name of', ()=>{
+        const cardName = nameOf(myCard)
+        expect(cardName).toBe("KING of SWORDS")
     })
 
-    test('getValue', ()=>{
-        expect(cardOne.getCardValue()).toEqual(0.5);
-    })
-
-    test('card precedences', ()=>{
-        let cardTwo = new SetteMezzoCard("Seven", SetteMezzoValue.SEVEN, BriscolaSuits.CLUBS);
-        expect(cardTwo.getCardValue()).toBeGreaterThan(cardOne.getCardValue());
-    })
-
-    test('getSuit', ()=>{
-        expect(cardOne.getSuit()).toEqual(BriscolaSuits.COINS);
+    test('Point value', ()=> {
+        const cardValue = pointValueOf(myCard)
+        expect(cardValue).toBe(0.5)
     })
 })
