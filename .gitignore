@@ -10,3 +10,10 @@
 #JetBrains IDEs generated files
 */.idea
 *.sln
+
+#Jest coverage reports
+*/coverage
+
+#environment configurations
+*.env
+/server/src/config/.env.mongo
