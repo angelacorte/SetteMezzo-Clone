@@ -83,5 +83,14 @@ io.on('connect', (socket: Socket)=>{
         const otherPlayers = lobbyUtils.getLobby(socket.data.lobby).participants.filter(p => p != player.id)
         otherPlayers.forEach(p => io.to(p).emit("show-card", {card: card, opponent: player}))
     })
+
+    socket.on("disconnect", async () => {
+        let lobby = lobbyUtils.getLobby(socket.data.lobby)
+        await lobby.participants.forEach((p, i) => {
+            if (p === socket.id) lobby.participants.splice(i, 1)
+        })
+        if (lobby.participants.length == 0) lobbyUtils.removeLobby(socket.data.lobby)
+    })
 });
+
 
