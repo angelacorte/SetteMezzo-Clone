@@ -1,7 +1,6 @@
-import exp from "constants";
+require('dotenv').config()
 
-const SERVER_URL = 'http://localhost:3000'
-
+const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000'
 //GAME MODES
 const NEW_LOBBY = "Create a new lobby";
 const JOIN_LOBBY =  "Join a specific lobby";
