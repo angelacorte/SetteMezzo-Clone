@@ -85,11 +85,13 @@ io.on('connect', (socket: Socket)=>{
     })
 
     socket.on("disconnect",  () => {
-        let lobby = lobbyUtils.getLobby(socket.data.lobby)
-        lobby.participants.forEach((p, i) => {
-            if (p === socket.id) lobby.participants.splice(i, 1)
-        })
-        if (lobby.participants.length == 0) lobbyUtils.removeLobby(socket.data.lobby)
+        if(socket.data.lobby){
+            let lobby = lobbyUtils.getLobby(socket.data.lobby)
+            lobby.participants.forEach((p, i) => {
+                if (p === socket.id) lobby.participants.splice(i, 1)
+            })
+            if (lobby.participants.length == 0) lobbyUtils.removeLobby(socket.data.lobby)
+        }
     })
 });
 
