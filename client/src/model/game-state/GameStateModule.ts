@@ -1,4 +1,4 @@
-import {createSetteMezzoDeck, shuffle} from "../deck/DeckModel"
+import {createSetteMezzoDeck, shuffle} from "../deck/DeckModule"
 import {Deck} from "../../../../common/deck/Deck";
 import {Player} from "../../../../common/player/Player";
 import {GameState} from "../../../../common/game-state/GameState";

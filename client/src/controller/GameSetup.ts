@@ -1,6 +1,6 @@
 import { map, of, switchMap } from "rxjs";
-import { addPlayer, newSetteMezzoGame } from "../model/game-state/GameStateModel";
-import { newPlayer } from "../model/player/PlayerModel";
+import { addPlayer, newSetteMezzoGame } from "../model/game-state/GameStateModule";
+import { newPlayer } from "../model/player/PlayerModule";
 import { client } from "./Client";
 import { lobby } from "./StartMenu";
 import {GameState} from "../../../common/game-state/GameState";

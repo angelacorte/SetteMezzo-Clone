@@ -1,9 +1,9 @@
 import { JOIN_LOBBY, NEW_LOBBY, RANDOM_LOBBY } from "../global";
 import { client } from "./Client"
 import * as stio from './stio'
-import { createLobby} from '../model/lobby/LobbyModel'
+import { createLobby} from '../model/lobby/LobbyModule'
 import { from, map, Observable, switchMap } from "rxjs";
-import { newPlayer } from "../model/player/PlayerModel";
+import { newPlayer } from "../model/player/PlayerModule";
 import {LobbyJoining, LobbySettings} from "../../../common/lobby/Lobby";
 import { Player } from "../../../common/player/Player";
 

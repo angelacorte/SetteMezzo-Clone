@@ -1,4 +1,4 @@
-import {from, nameOf} from "../card/CardModel";
+import {from, nameOf} from "../card/CardModule";
 import {Deck} from "../../../../common/deck/Deck";
 import {Card, Suits, Values} from "../../../../common/card/Card";
 

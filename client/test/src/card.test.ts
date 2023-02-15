@@ -1,4 +1,4 @@
-import { from, nameOf, pointValueOf } from "../../src/model/card/CardModel"
+import { from, nameOf, pointValueOf } from "../../src/model/card/CardModule"
 import {Card, Suits, Values} from "../../../common/card/Card";
 
 

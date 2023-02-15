@@ -2,15 +2,15 @@ import { switchMap, map, Observable } from 'rxjs'
 import { GameState } from '../../../common/game-state/GameState'
 import { Player } from '../../../common/player/Player'
 import {START_VALUE, MAX_VALUE} from '../global'
-import { pointValueOf } from '../model/card/CardModel'
-import { updatePlayer } from '../model/game-state/GameStateModel'
-import { setPoints } from '../model/player/PlayerModel'
+import { pointValueOf } from '../model/card/CardModule'
+import { updatePlayer } from '../model/game-state/GameStateModule'
+import { setPoints } from '../model/player/PlayerModule'
 import {client} from './Client'
 import {player} from './StartMenu'
 import * as stio from './stio'
 import {Card} from "../../../common/card/Card";
-import {updateDeck} from "../model/game-state/GameStateModel";
-import {createSetteMezzoDeck, shuffle} from "../model/deck/DeckModel";
+import {updateDeck} from "../model/game-state/GameStateModule";
+import {createSetteMezzoDeck, shuffle} from "../model/deck/DeckModule";
 
 const nextround: Observable<{
     player$: Player

@@ -1,5 +1,5 @@
 import { Player } from "../../../common/player/Player"
-import { newPlayer, setPoints } from "../../src/model/player/PlayerModel"
+import { newPlayer, setPoints } from "../../src/model/player/PlayerModule"
 
 describe('My player', ()=> {
     let player : Player

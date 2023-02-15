@@ -1,5 +1,5 @@
-import { addPlayer, addPlayers, newGame, newSetteMezzoGame, removePlayer, updatePlayer } from "../../src/model/game-state/GameStateModel"
-import { newPlayer, setPoints } from "../../src/model/player/PlayerModel"
+import { addPlayer, addPlayers, newGame, newSetteMezzoGame, removePlayer, updatePlayer } from "../../src/model/game-state/GameStateModule"
+import { newPlayer, setPoints } from "../../src/model/player/PlayerModule"
 
 import {Suits, Values} from "../../../common/card/Card";
 import {GameState} from "../../../common/game-state/GameState";

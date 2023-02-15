@@ -1,4 +1,4 @@
-import { createSetteMezzoDeck, emptyDeck, getCardWithName, isEmpty } from "../../src/model/deck/DeckModel"
+import { createSetteMezzoDeck, emptyDeck, getCardWithName, isEmpty } from "../../src/model/deck/DeckModule"
 import {Deck} from "../../../common/deck/Deck";
 
 describe('My deck', ()=>{
