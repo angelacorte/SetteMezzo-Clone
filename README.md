@@ -21,18 +21,19 @@ Per il deployment sia del client che del server è necessario aver installato il
 ### Server
 
 È possibile svolgere il deployment del server in locale in due modi:
-1. Posizionarsi da terminale all'interno della cartella \textit{server} e lanciare in sequenza i seguenti comandi:
+1. Posizionarsi da terminale all'interno della cartella *server* e lanciare in sequenza i seguenti comandi:
 
      *npm i --silent*
 
      *npm run deployment*
+
 2. Deployment con docker, quindi dalla root del progetto eseguire i comandi:
 
      *docker build -t server .*
 
      *docker run -p 3000:3000 server*
 
-Dopodiché si avrà il server funzionante in ascolto su <http://localhost:3000/>
+Dopodiché si avrà il server funzionante in ascolto su <http://localhost:3000/> .
 
 Per poter eseguire l'applicativo su dispositivi diversi, è stato deciso di hostare il server sulla piattaforma di hosting Railway. In questo caso è necessario creare un file *.env* all'interno della directory *client* con al suo interno: *SERVER_URL=https://settemezzo-clone-production.up.railway.app/*
 
