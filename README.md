@@ -34,9 +34,7 @@ Per il deployment sia del client che del server è necessario aver installato il
 
 Dopodiché si avrà il server funzionante in ascolto su <http://localhost:3000/>
 
-Per poter eseguire l'applicativo su dispositivi diversi, è stato deciso di hostare il server sulla piattaforma di hosting Railway. In questo caso è necessario creare un file *.env* all'interno della directory *client* con al suo interno
-
-**SERVER_URL=https://settemezzo-clone-production.up.railway.app/**
+Per poter eseguire l'applicativo su dispositivi diversi, è stato deciso di hostare il server sulla piattaforma di hosting Railway. In questo caso è necessario creare un file *.env* all'interno della directory *client* con al suo interno: *SERVER_URL=https://settemezzo-clone-production.up.railway.app/*
 
 Ciò permette dunque di connettere il client al server online.
 
