@@ -68,7 +68,6 @@ async function askCards(gstate: GameState, player: Player, totalValue: number): 
     }
     console.log(`You draw ${card.value} of ${card.suit}`)
     const handValue = totalValue + pointValueOf(card)
-    console.log("total val ", totalValue)
     if(totalValue > START_VALUE){
         client.sendEvent("card-drawn", {card: card, player: player})
     }
