@@ -35,24 +35,41 @@ Per il deployment sia del client che del server è necessario aver installato il
 
 Dopodiché si avrà il server funzionante in ascolto su <http://localhost:3000/> .
 
-Per poter eseguire l'applicativo su dispositivi diversi, è stato deciso di hostare il server sulla piattaforma di hosting Railway. In questo caso è necessario creare un file *.env* all'interno della directory *client* con al suo interno: *SERVER_URL=https://settemezzo-clone-production.up.railway.app/*
-
-Ciò permette dunque di connettere il client al server online.
+Per poter eseguire l'applicativo su dispositivi diversi, è stato deciso di hostare il server sulla piattaforma di hosting Railway. In questo caso per usufruirne basta seguire le indicazioni specifiche per il deployment del client in seguito.
 
 ### Client
 
 Per ogni client che si vuole collegare al server, bisogna aprire un ulteriore terminale, nel quale posizionarsi all'interno della directory *client*.
 
-La prima volta che si vuol far partire il client è necessario lanciare in successione i comandi:
+La prima volta che si vuol far partire il client è necessario lanciare il comandio:
 
 *npm i --silent*
 
-*npm run build*  (necessario solamente la prima volta)
+Dopodiché si possono avere due casistiche di utilizzo:
 
-*npm run start*
+1. Utilizzo in **locale**: in questo caso si può giocare con vari terminali (giocatori) ma dallo stesso pc. 
+   Per far partire l'applicativo basterà lanciare da terminale il seguente comando:
+
+    *npm run start-local*
+    
+2. Utilizzo in **rete**: in questo caso è sempre possibile far giocare vari utenti dallo stesso pc, ma in aggiunta si può giocare con altri utenti collegati online da pc diversi. 
+   Per fare ciò bisognerà lanciare da terminale il seguente comando:
+
+    *npm run start-remote*
 
 A questo punto sarà possibile procedere con la creazione di una partita come sopra descritto.
 
-### Demo dell'elaborato 
+##### NOTA: 
+Per poter creare i due script all'interno del package.json, è stato necessario utilizzare il pacchetto npm *cross-env*, che permette di creare un file .env automaticamente dall'interno di uno script, con al suo interno l'url del server. 
+Dalla documentazione fornita fanno notare che potrebbe presentarsi un problema su macchine Windows, ovvero npm utilizza cmd di default, che non supporta la sostituzione di comandi, dalla documentazione ufficiale forniscono come soluzione modificare il proprio *.npmrc* e settare *script-shell* a *powershell*.
 
-È possibile visionare una piccola demo dell'elaborato con vari scenari d'uso al seguente [link](https://liveunibo-my.sharepoint.com/:v:/g/personal/angela_cortecchia_studio_unibo_it/EdDDO26GVGlHqivtucu7p3gBBMqQCQlJqVoWXuw7RYg2UA?e=svMGyE). La demo fa riferimento a due partite con tre giocatori, due dallo stesso pc, mentre uno da un pc esterno.
+In alternativa si può creare in autonomia un file .env all'interno della directory *client* ed inserire **SERVER_URL=https://settemezzo-clone-production.up.railway.app/**
+per poi eseguire in successione i seguenti comandi:
+
+*npm run build*
+
+*npm run start*
+
+## Demo dell'elaborato 
+
+È possibile visionare una piccola demo dell'elaborato con vari scenari d'uso al seguente [link](https://liveunibo-my.sharepoint.com/:v:/g/personal/angela_cortecchia_studio_unibo_it/EXwqwsBeIudAtYuwSBwsesoBUSqGN25l5CqyRn6xjIw1WQ?e=Y2DvZr). La demo fa riferimento a due partite con tre giocatori, due dallo stesso pc, mentre uno da un pc esterno.
