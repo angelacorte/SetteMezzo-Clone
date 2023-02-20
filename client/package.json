@@ -3,9 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "config": {
+    "localURL": "http://localhost:3000",
+    "remoteURL": "https://settemezzo-clone-production.up.railway.app/"
+  },
   "scripts": {
     "start": "node dist/client/src/app.js",
     "dev": "nodemon src/app.ts",
+    "start-local": "npm run build; cross-env SERVER_URL=$npm_package_config_localURL node dist/client/src/app.js ",
+    "start-remote": "npm run build; cross-env SERVER_URL=$npm_package_config_remoteURL node dist/client/src/app.js",
     "build": "tsc -p .",
     "test": "jest --watch --coverage --no-cache"
   },
@@ -13,6 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",
     "inquirer": "^8.2.4",
     "rxjs": "^7.8.0",
