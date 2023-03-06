@@ -97,9 +97,9 @@ io.on('connect', (socket: Socket)=>{
 
             //Error handling: if a client fails, the rest of the lobby is notified
             if(lobby.state === LobbyState.CREATED) {
-                io.to(socket.data.lobby).emit('client-failed-before-game', socket.id)
+                io.to(socket.data.lobby).emit('client-failed-setup', socket.id)
             } else {
-                io.to(socket.data.lobby).emit('client-failed-in-game', socket.id)
+                io.to(socket.data.lobby).emit('client-failed-loop', socket.id)
             }
             
         }
