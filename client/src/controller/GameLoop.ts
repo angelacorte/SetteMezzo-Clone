@@ -3,7 +3,7 @@ import { GameState } from '../../../common/game-state/GameState'
 import { Player } from '../../../common/player/Player'
 import {START_VALUE, MAX_VALUE} from '../global'
 import { pointValueOf } from '../model/card/CardModule'
-import { updatePlayer } from '../model/game-state/GameStateModule'
+import { getPlayer, updatePlayer } from '../model/game-state/GameStateModule'
 import { setPoints } from '../model/player/PlayerModule'
 import {client} from './Client'
 import {player} from './StartMenu'
@@ -32,8 +32,22 @@ const showCard: Observable<{
     opponent: Player
 }> = client.eventObservable('show-card')
 
+const clientFailure = nextround
+    .pipe(
+        switchMap(({player$, gstate, currentP, currentR, maxR}) => 
+            client.eventObservable('client-failed-in-game')
+                .pipe(
+                    map((userId) => ({userId, gstate}))
+                )
+        )
+    )
+
 showCard.subscribe(async ({card, opponent}) => {
     console.log(`${opponent.name} draw another card: ${card.value} of ${card.suit}`)
+})
+
+clientFailure.subscribe(({userId, gstate}) => {
+    handleClientFailure(userId, gstate)
 })
 
 nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
@@ -60,6 +74,16 @@ nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
         }
     }
 })
+
+function handleClientFailure(userId: string, gstate: GameState) {
+    try {
+        const playerFailed = getPlayer(gstate, userId)
+        console.log(`Player ${playerFailed.name} disconnected from the game! Ending the game now...`)
+        checkGameWinners(gstate)
+    } catch(err) {
+        // not handling failures here
+    }
+}
 
 async function askCards(gstate: GameState, player: Player, totalValue: number): Promise<{newState: GameState, handValue: number}> {
     const card = gstate.deck.pop()
