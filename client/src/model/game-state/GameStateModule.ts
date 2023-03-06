@@ -92,3 +92,10 @@ export function updatePlayer(state: GameState, oldPlayer: Player, newPlayer: Pla
     })
     return createGameState(state.deck, newPlayers)
 }
+
+export function getPlayer(state: GameState, playerId: string) {
+    const found = state.players.find(p => p.id == playerId)
+    if(found) {
+        return found
+    } else throw new Error('Player not found')
+}
