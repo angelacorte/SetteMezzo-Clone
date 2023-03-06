@@ -1,12 +1,12 @@
-import { map, of, switchMap } from "rxjs";
-import { addPlayer, newSetteMezzoGame } from "../model/game-state/GameStateModule";
+import { map, Observable, of, switchMap } from "rxjs";
+import { addPlayer, getPlayer, newSetteMezzoGame } from "../model/game-state/GameStateModule";
 import { newPlayer } from "../model/player/PlayerModule";
 import { client } from "./Client";
 import { lobby } from "./StartMenu";
 import {GameState} from "../../../common/game-state/GameState";
 import {LobbySettings} from "../../../common/lobby/Lobby";
 
-const gamestate = lobby
+export const gamestate = lobby
     .pipe(
         switchMap(({player, lobby$})=>
             of(newSetteMezzoGame())
@@ -26,9 +26,21 @@ const guestJoining = gamestate
             )
         )
 
-guestJoining.subscribe(({gstate, lobby$, userData}) => {
+const guestDisconnecting = client.eventObservable('client-failed-before-game')
+
+const joiningSubscription = guestJoining.subscribe(({gstate, lobby$, userData}) => {
     handleGuestJoined(gstate, userData)
     startGame(gstate, lobby$)
+})
+
+guestDisconnecting.subscribe(() => {
+    try {
+        console.log(`A player left the game! Closing this lobby...`)
+        joiningSubscription.unsubscribe()
+    } catch(err) {
+        //not handling this error here
+    }
+    
 })
 
 function handleGuestJoined(gameState: GameState, userData: any) {

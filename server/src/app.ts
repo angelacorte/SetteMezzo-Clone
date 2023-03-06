@@ -86,11 +86,22 @@ io.on('connect', (socket: Socket)=>{
 
     socket.on("disconnect",  () => {
         if(socket.data.lobby){
+            //Endgame handling: we remove each participant from the lobby upon disconnection
+            //remove participant from lobby
             let lobby = lobbyUtils.getLobby(socket.data.lobby)
             lobby.participants.forEach((p, i) => {
                 if (p === socket.id) lobby.participants.splice(i, 1)
             })
+            //delete the lobby if it's empty
             if (lobby.participants.length == 0) lobbyUtils.removeLobby(socket.data.lobby)
+
+            //Error handling: if a client fails, the rest of the lobby is notified
+            if(lobby.state === LobbyState.CREATED) {
+                io.to(socket.data.lobby).emit('client-failed-before-game', socket.id)
+            } else {
+                io.to(socket.data.lobby).emit('client-failed-in-game', socket.id)
+            }
+            
         }
     })
 });
