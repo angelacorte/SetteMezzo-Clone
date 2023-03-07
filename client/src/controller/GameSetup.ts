@@ -2,12 +2,12 @@ import { BehaviorSubject, map, mergeWith, Observable, startWith, withLatestFrom 
 import { addPlayers, newSetteMezzoGame } from "../model/game-state/GameStateModule";
 import { newPlayer } from "../model/player/PlayerModule";
 import { client } from "./Client";
-import { lobby } from "./StartMenu";
+import { lobby$ } from "./StartMenu";
 import { Player } from "../../../common/player/Player";
 
-const lobbySettings$ = lobby
+const lobbySettings$ = lobby$
     .pipe(
-        map(({player, lobby$}) => lobby$)
+        map(({player, lobby}) => lobby)
     )
 
 const players$ = new BehaviorSubject<Player[]>([])

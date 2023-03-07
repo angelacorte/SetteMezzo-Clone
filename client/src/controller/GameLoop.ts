@@ -6,44 +6,33 @@ import { pointValueOf } from '../model/card/CardModule'
 import {newSetteMezzoGame, updatePlayer} from '../model/game-state/GameStateModule'
 import { setPoints } from '../model/player/PlayerModule'
 import {client} from './Client'
-import {player} from './StartMenu'
+import {player$} from './StartMenu'
 import * as stio from './stio'
 import {Card} from "../../../common/card/Card";
 import {updateDeck} from "../model/game-state/GameStateModule";
 import {createSetteMezzoDeck, shuffle} from "../model/deck/DeckModule";
 
-let gameState$ = new BehaviorSubject<GameState>(newSetteMezzoGame());
-let currentTurn$ = new BehaviorSubject<number>(0);
+const gameState$ = new BehaviorSubject<GameState>(newSetteMezzoGame());
+const currentTurn$ = new BehaviorSubject<number>(0);
 
-const nextround: Observable<{
-    player$: Player
-    gstate: GameState
-    currentP: number
-    currentR: number
-    maxR: number
-}> = player.pipe(
-        switchMap(player$ =>
+const nextround$ = player$.pipe(
+        switchMap(player =>
             client.eventObservable('round')
                 .pipe(
-                    map(({gstate, currentP, currentR, maxR}) => ({player$, gstate, currentP, currentR, maxR}))
+                    map(({gstate, currentP, currentR, maxR}) => ({player, gstate, currentP, currentR, maxR}))
                 ) 
         )
     )
 
-const showCard: Observable<{
-    card: Card,
-    opponent: Player
-}> = client.eventObservable('show-card')
+const showCard$= client.eventObservable('show-card')
 
-const clientDisconnected: Observable<{
-    clientId: string
-}> = client.eventObservable("client-disconnected")
+const disconnections$ = client.eventObservable("client-disconnected")
 
-showCard.subscribe(async ({card, opponent}) => {
+showCard$.subscribe(async ({card, opponent}) => {
     console.log(`${opponent.name} draw another card: ${card.value} of ${card.suit}`)
 })
 
-nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
+nextround$.subscribe(async ({player, gstate, currentP, currentR, maxR}) => {
     gameState$.next(gstate)
     currentTurn$.next(currentP)
     if(gameState$.value.players.length == currentTurn$.value) {
@@ -59,7 +48,7 @@ nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
     console.log("== ROUND #", currentR)
     const currentPlayer = gameState$.value.players[currentTurn$.value]
     console.log(`${currentPlayer.name}'s turn`)
-    if (currentPlayer.id == player$.id) {
+    if (currentPlayer.id == player.id) {
         try {
             const g = await askCards(gameState$.value, currentPlayer, START_VALUE)
             client.sendEvent('next', {gameState: g.newState, currentPlayer: currentTurn$.value+1, currentRound: currentR, maxRounds: maxR})
@@ -70,14 +59,14 @@ nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
     }
 })
 
-clientDisconnected.subscribe(async ({clientId}) => {
+disconnections$.subscribe(async ({clientId}) => {
     gameState$.value.players.forEach((p, index) => {
         if(p.id == clientId) {
             console.log(`\nPlayer ${p.name} disconnected`);
             if(currentTurn$.value == index || gameState$.value.players.length == 1) {
                 console.log('\n=== MUST QUIT THE GAME === please press ctrl + c')
             }
-            let currentPlayer = gameState$.value.players[currentTurn$.value]
+            const currentPlayer = gameState$.value.players[currentTurn$.value]
             gameState$.value.players.splice(index, 1)
             currentTurn$.next( gameState$.value.players.indexOf(currentPlayer))
         }
