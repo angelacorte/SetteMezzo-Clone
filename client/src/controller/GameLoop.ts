@@ -1,9 +1,9 @@
-import { switchMap, map, Observable } from 'rxjs'
+import {switchMap, map, Observable, BehaviorSubject} from 'rxjs'
 import { GameState } from '../../../common/game-state/GameState'
 import { Player } from '../../../common/player/Player'
 import {START_VALUE, MAX_VALUE} from '../global'
 import { pointValueOf } from '../model/card/CardModule'
-import { getPlayer, updatePlayer } from '../model/game-state/GameStateModule'
+import {newSetteMezzoGame, updatePlayer} from '../model/game-state/GameStateModule'
 import { setPoints } from '../model/player/PlayerModule'
 import {client} from './Client'
 import {player} from './StartMenu'
@@ -11,6 +11,9 @@ import * as stio from './stio'
 import {Card} from "../../../common/card/Card";
 import {updateDeck} from "../model/game-state/GameStateModule";
 import {createSetteMezzoDeck, shuffle} from "../model/deck/DeckModule";
+
+let gameState$ = new BehaviorSubject<GameState>(newSetteMezzoGame());
+let currentTurn$ = new BehaviorSubject<number>(0);
 
 const nextround: Observable<{
     player$: Player
@@ -32,58 +35,54 @@ const showCard: Observable<{
     opponent: Player
 }> = client.eventObservable('show-card')
 
-const clientFailure = nextround
-    .pipe(
-        switchMap(({player$, gstate, currentP, currentR, maxR}) => 
-            client.eventObservable('client-failed-in-game')
-                .pipe(
-                    map((userId) => ({userId, gstate}))
-                )
-        )
-    )
+const clientDisconnected: Observable<{
+    clientId: string
+}> = client.eventObservable("client-disconnected")
 
 showCard.subscribe(async ({card, opponent}) => {
     console.log(`${opponent.name} draw another card: ${card.value} of ${card.suit}`)
 })
 
-clientFailure.subscribe(({userId, gstate}) => {
-    handleClientFailure(userId, gstate)
-})
-
 nextround.subscribe(async ({player$, gstate, currentP, currentR, maxR}) => {
-    if(currentP == gstate.players.length) {
-        checkRoundWinners(gstate)
-        currentP = 0
+    gameState$.next(gstate)
+    currentTurn$.next(currentP)
+    if(gameState$.value.players.length == currentTurn$.value) {
+        checkRoundWinners(gameState$.value)
+        currentTurn$.next(0)
         currentR += 1
-        gstate = resetState(gstate)
+        gameState$.next(resetState(gameState$.value))
         if(currentR > maxR){
-            checkGameWinners(gstate)
+            checkGameWinners(gameState$.value)
             return
         }
     }
     console.log("== ROUND #", currentR)
-    const currentPlayer = gstate.players[currentP]
+    const currentPlayer = gameState$.value.players[currentTurn$.value]
     console.log(`${currentPlayer.name}'s turn`)
     if (currentPlayer.id == player$.id) {
         try {
-            const g = await askCards(gstate, currentPlayer, START_VALUE)
-            client.sendEvent('next', {gameState: g.newState, currentPlayer: currentP+1, currentRound: currentR, maxRounds: maxR})
+            const g = await askCards(gameState$.value, currentPlayer, START_VALUE)
+            client.sendEvent('next', {gameState: g.newState, currentPlayer: currentTurn$.value+1, currentRound: currentR, maxRounds: maxR})
         } catch(err) {
-            client.sendEvent('next', {gameState: gstate, currentPlayer: currentP+1, currentRound: currentR, maxRounds: maxR})
+            client.sendEvent('next', {gameState: gameState$, currentPlayer: currentTurn$.value+1, currentRound: currentR, maxRounds: maxR})
             console.log(err)
         }
     }
 })
 
-function handleClientFailure(userId: string, gstate: GameState) {
-    try {
-        const playerFailed = getPlayer(gstate, userId)
-        console.log(`Player ${playerFailed.name} disconnected from the game! Ending the game now...`)
-        checkGameWinners(gstate)
-    } catch(err) {
-        // not handling failures here
-    }
-}
+clientDisconnected.subscribe(async ({clientId}) => {
+    gameState$.value.players.forEach((p, index) => {
+        if(p.id == clientId) {
+            console.log(`\nPlayer ${p.name} disconnected`);
+            if(currentTurn$.value == index || gameState$.value.players.length == 1) {
+                console.log('\n=== MUST QUIT THE GAME === please press ctrl + c')
+            }
+            let currentPlayer = gameState$.value.players[currentTurn$.value]
+            gameState$.value.players.splice(index, 1)
+            currentTurn$.next( gameState$.value.players.indexOf(currentPlayer))
+        }
+    })
+})
 
 async function askCards(gstate: GameState, player: Player, totalValue: number): Promise<{newState: GameState, handValue: number}> {
     const card = gstate.deck.pop()
@@ -129,10 +128,12 @@ function checkGameWinners(gs: GameState) {
     }, 0)
     if(mostWins > 0){
         const winners = gs.players.filter(p => p.wins == mostWins)
-        console.log('== The game WINNERS are:')
+        console.log('\n== The game WINNERS are:')
         winners.forEach((w) => console.log(`${w.name} with ${w.wins} wins`))
+        console.log("Game ended, please quit with ctrl+C")
     }else{
         console.log("Nobody won the game.")
+        console.log("Game ended, please quit with ctrl+C")
     }
 }
 
