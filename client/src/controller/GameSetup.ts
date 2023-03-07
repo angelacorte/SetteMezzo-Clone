@@ -24,12 +24,15 @@ const disconnections$ = client.eventObservable('client-failed-setup')
 
 const updates$ = connections$.pipe(mergeWith(disconnections$))
 
-const gameStart$: Observable<boolean> = players$.pipe(
-    startWith([]),
-    map(players => players.length),
-    withLatestFrom(lobbySettings$),
-    map(([playerCount, settings]) => playerCount === settings.maxPlayers)
-  );
+const gameStart$: Observable<boolean> = players$
+    .pipe(
+        startWith([]),
+        map(players => players.length),
+        withLatestFrom(lobbySettings$),
+        map(([playerCount, settings]) => playerCount === settings.maxPlayers)
+    )
+
+const ownerFailure$ = client.eventObservable('owner-disconnected')
   
 gameStart$.subscribe(gameStart => {
     if (gameStart) {
@@ -52,4 +55,8 @@ updates$.subscribe(player => {
         players$.next(newPlayers)
         console.log(`A player left the lobby!`)
     }
+})
+
+ownerFailure$.subscribe(()=>{
+    console.log("The owner of the lobby disconnected, please quit with Ctrl+C")
 })
