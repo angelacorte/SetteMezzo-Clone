@@ -7,9 +7,9 @@ import { newPlayer } from "../model/player/PlayerModule";
 import {LobbyJoining, LobbySettings} from "../../../common/lobby/Lobby";
 import { Player } from "../../../common/player/Player";
 
-const connection = client.connection()
+const connection$ = client.connection()
 
-export const player = connection
+export const player$ = connection$
     .pipe(
         switchMap(() =>
             from(getPlayer())
@@ -17,7 +17,7 @@ export const player = connection
         share()
     )
 
-const action = player
+const action$ = player$
     .pipe(
         switchMap( player =>
             from(stio.askChoice([NEW_LOBBY, JOIN_LOBBY, RANDOM_LOBBY]))
@@ -27,7 +27,7 @@ const action = player
         )
     )
 
-action.subscribe(async ({player, choice}) => {
+action$.subscribe(async ({player, choice}) => {
     switch (choice) {
         case NEW_LOBBY:
             const lobbySettings = await lobbyCreation()            
@@ -43,22 +43,22 @@ action.subscribe(async ({player, choice}) => {
     }
 })
 
-export const lobby = player
+export const lobby$ = player$
     .pipe(
         switchMap(player => 
             client.eventObservable('lobby-created')
                 .pipe(
-                    map(lobby$ => ({player, lobby$}))
+                    map(lobby => ({player, lobby}))
                 )
             )
     )
   
-lobby.subscribe(({player, lobby$}) => 
-    client.sendEvent('join-lobby', {lobbyName: lobby$.lobbyName, username: player.name, userId: player.id}))
+lobby$.subscribe(({player, lobby}) => 
+    client.sendEvent('join-lobby', {lobbyName: lobby.lobbyName, username: player.name, userId: player.id}))
 
-const creationError: Observable<LobbySettings> = client.eventObservable('creation-error')
+const creationError$: Observable<LobbySettings> = client.eventObservable('creation-error')
 
-creationError.subscribe(async (oldSettings)=>{
+creationError$.subscribe(async (oldSettings)=>{
     const newName = await stio.askQuestion('Please, insert another lobby name >')
     const lobbySettings = createLobby(newName, oldSettings.maxPlayers, oldSettings.maxRounds)
     client.sendEvent('create-lobby', lobbySettings)

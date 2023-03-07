@@ -29,6 +29,7 @@ function refreshActiveLobbies(): Array<Lobby> {
 function joinLobby(lobby: LobbyJoining, ownerId: string) {
     const toSend = {userName: lobby.username, userId: lobby.userId}
     io.to(ownerId).emit("guest-joined", toSend);
+    io.to(lobby.userId).emit("join-success", lobby.lobbyName);
 }
 
 io.on('connect', (socket: Socket)=>{
@@ -86,11 +87,19 @@ io.on('connect', (socket: Socket)=>{
 
     socket.on("disconnect",  () => {
         if(socket.data.lobby){
+            //Endgame handling: we remove each participant from the lobby upon disconnection
+            //remove participant from lobby
             let lobby = lobbyUtils.getLobby(socket.data.lobby)
-            lobby.participants.forEach((p, i) => {
-                if (p === socket.id) lobby.participants.splice(i, 1)
-            })
+            lobby.participants.forEach((p, i) => { if (p === socket.id) lobby.participants.splice(i, 1)})
             if (lobby.participants.length == 0) lobbyUtils.removeLobby(socket.data.lobby)
+            else {
+                if(lobby.state == LobbyState.STARTED) io.to(lobby.lobbySettings.lobbyName).emit("client-disconnected", {clientId: socket.id})
+                else {
+                    if(lobby.owner == socket.id) io.to(lobby.lobbySettings.lobbyName).emit("owner-disconnected")
+                    else io.to(lobby.owner).emit("player-disconnected", {clientId: socket.id})
+                }
+            }
+            
         }
     })
 });

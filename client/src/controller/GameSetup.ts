@@ -1,43 +1,62 @@
-import { map, of, switchMap } from "rxjs";
-import { addPlayer, newSetteMezzoGame } from "../model/game-state/GameStateModule";
+import { BehaviorSubject, map, mergeWith, Observable, startWith, withLatestFrom } from "rxjs";
+import { addPlayers, newSetteMezzoGame } from "../model/game-state/GameStateModule";
 import { newPlayer } from "../model/player/PlayerModule";
 import { client } from "./Client";
-import { lobby } from "./StartMenu";
-import {GameState} from "../../../common/game-state/GameState";
-import {LobbySettings} from "../../../common/lobby/Lobby";
+import { lobby$ } from "./StartMenu";
+import { Player } from "../../../common/player/Player";
 
-const gamestate = lobby
+const lobbySettings$ = lobby$
     .pipe(
-        switchMap(({player, lobby$})=>
-            of(newSetteMezzoGame())
-                .pipe(
-                    map((gstate)=>({player, lobby$, gstate}))
-                )
-        )
+        map(({player, lobby}) => lobby)
     )
 
-const guestJoining = gamestate
-        .pipe(
-            switchMap(({player, lobby$, gstate})=>
-                client.eventObservable('guest-joined')
-                    .pipe(
-                        map(userData => ({gstate, lobby$, userData}))
-                    )
-            )
-        )
+const players$ = new BehaviorSubject<Player[]>([])
 
-guestJoining.subscribe(({gstate, lobby$, userData}) => {
-    handleGuestJoined(gstate, userData)
-    startGame(gstate, lobby$)
+const connections$ = client.eventObservable('guest-joined')
+    .pipe(
+        map(userData => newPlayer(userData.userId, userData.userName))
+    )
+
+const disconnections$ = client.eventObservable('client-failed-setup')
+    .pipe(
+        map(userId => newPlayer(userId, "disconnecting"))
+    )
+
+const updates$ = connections$.pipe(mergeWith(disconnections$))
+
+const gameStart$: Observable<boolean> = players$
+    .pipe(
+        startWith([]),
+        map(players => players.length),
+        withLatestFrom(lobbySettings$),
+        map(([playerCount, settings]) => playerCount === settings.maxPlayers)
+    )
+
+const ownerFailure$ = client.eventObservable('owner-disconnected')
+  
+gameStart$.subscribe(gameStart => {
+    if (gameStart) {
+        console.log(`Last player joined the lobby. Let the game begins!`)
+        const players = players$.value
+        const state = addPlayers(newSetteMezzoGame(), players)
+        client.sendEvent('start-game', state)
+    }
 })
 
-function handleGuestJoined(gameState: GameState, userData: any) {
-    gameState = addPlayer(gameState, newPlayer(userData.userId, userData.userName))
-    console.log(`${userData.userName} joined the lobby!`)
-}
+updates$.subscribe(player => {
+    const players = players$.value
+    const found = players.some(p => p.id == player.id)
+    if (!found) {
+        const newPlayers = [...players, player]
+        players$.next(newPlayers)
+        console.log(`${player.name} joined the lobby!`)
+    } else {
+        const newPlayers = players.filter(p => p.id !== player.id)
+        players$.next(newPlayers)
+        console.log(`A player left the lobby!`)
+    }
+})
 
-function startGame(gameState: GameState, lobbySettings: LobbySettings) {
-    if(!(gameState.players.length == lobbySettings.maxPlayers)) return
-    console.log(`Last player joined the lobby. Let the game begins!`)
-    client.sendEvent('start-game', gameState)
-}
+ownerFailure$.subscribe(()=>{
+    console.log("The owner of the lobby disconnected, please quit with Ctrl+C")
+})
